@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+public/model/*
+public/model/*.json
+public/js/*
+public/live2d/*.js
+public/live2d/*

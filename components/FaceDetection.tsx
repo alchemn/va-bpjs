@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import * as tf from "@tensorflow/tfjs";
 import * as blazeface from "@tensorflow-models/blazeface";
 import "@tensorflow/tfjs-backend-webgl";
 
 export default function FaceWatcher() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [greeting, setGreeting] = useState<string>(""); // teks salam muncul di layar
   const lastGreetRef = useRef<number>(0);
   const speakingRef = useRef<boolean>(false);
 
@@ -67,11 +66,7 @@ export default function FaceWatcher() {
 
       if (hasFace && now - lastGreetRef.current > cooldownMs && !speakingRef.current) {
         lastGreetRef.current = now;
-        setGreeting("👋 Assalamu’alaikum, selamat datang di BPJS Banda Aceh!");
         speak(text);
-
-        // hapus teks salam setelah 5 detik
-        setTimeout(() => setGreeting(""), 5000);
       }
 
       animationId = requestAnimationFrame(detectLoop);

@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { speakTTS } from "@/lib/speak";
-import Live2DAvatar from "@/components/LiveAvatar";
 import {
   ArrowLeft,
   CircleUser,
@@ -13,6 +13,7 @@ import {
   MessageCircle,
   MessageSquareQuote,
 } from "lucide-react";
+
 
 interface QAItem {
   q: string;
@@ -76,18 +77,15 @@ export default function ChatPage() {
   const sectionParam = searchParams.get("section") as SectionKey | null;
   const category = searchParams.get("category");
   const question = searchParams.get("q");
-
   const [answer, setAnswer] = useState<string>("");
-  const [typedText, setTypedText] = useState<string>("");
+  const [typedText, setTypedText] = useState<string>(""); // efek ngetik
   const [suggestions, setSuggestions] = useState<QAItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
-  const [audioEl, setAudioEl] = useState<HTMLAudioElement | null>(null);
 
   const IDLE_TIMEOUT = 60 * 1000; // 60 detik
 
-  // 🔹 Auto redirect kalau idle
   useEffect(() => {
     let timer: NodeJS.Timeout;
 
@@ -106,7 +104,7 @@ export default function ChatPage() {
       clearTimeout(timer);
       events.forEach((event) => window.removeEventListener(event, resetTimer));
     };
-  }, [router]);
+  }, [router, IDLE_TIMEOUT]);
 
   const meta = useMemo(() => {
     if (sectionParam && sectionParam in sectionMeta) {
@@ -126,7 +124,6 @@ export default function ChatPage() {
     };
   }, [sectionParam]);
 
-  // 🔹 Ambil jawaban dari context.json
   useEffect(() => {
     let ignore = false;
 
@@ -181,7 +178,7 @@ export default function ChatPage() {
     };
   }, [sectionParam, category, question, reloadKey]);
 
-  // 🔹 Efek mengetik + sinkron dengan TTS
+
   useEffect(() => {
     if (!answer) {
       setTypedText("");
@@ -190,25 +187,32 @@ export default function ChatPage() {
 
     let isCancelled = false;
     let typingTimer: NodeJS.Timeout | null = null;
+    let audio: HTMLAudioElement | null = null;
 
     const startTyping = () => {
       let index = 0;
       typingTimer = setInterval(() => {
         if (isCancelled) {
-          if (typingTimer) clearInterval(typingTimer);
+          if (typingTimer) {
+            clearInterval(typingTimer);
+          }
           return;
         }
 
         const char = answer.charAt(index);
         if (!char) {
-          if (typingTimer) clearInterval(typingTimer);
+          if (typingTimer) {
+            clearInterval(typingTimer);
+          }
           return;
         }
 
         setTypedText((prev) => prev + char);
         index += 1;
 
-        if (index >= answer.length && typingTimer) clearInterval(typingTimer);
+        if (index >= answer.length && typingTimer) {
+          clearInterval(typingTimer);
+        }
       }, 30);
     };
 
@@ -216,13 +220,18 @@ export default function ChatPage() {
       setTypedText("");
 
       try {
-        const audio = await speakTTS(answer);
-        setAudioEl(audio); // 🔹 kirim ke Live2D
-        startTyping();
-        await audio.play();
+        audio = await speakTTS(answer);
       } catch (err) {
         console.error("TTS error:", err);
-        startTyping();
+      } finally {
+        if (!isCancelled) {
+          startTyping();
+          if (audio) {
+            audio.play().catch((playErr) => {
+              console.warn("Gagal memutar audio:", playErr);
+            });
+          }
+        }
       }
     };
 
@@ -230,7 +239,13 @@ export default function ChatPage() {
 
     return () => {
       isCancelled = true;
-      if (typingTimer) clearInterval(typingTimer);
+      if (typingTimer) {
+        clearInterval(typingTimer);
+      }
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
     };
   }, [answer]);
 
@@ -239,8 +254,8 @@ export default function ChatPage() {
 
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-sky-50 via-white to-white px-4 py-8">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-        {/* 🔹 Header */}
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
+        {/* ðŸ”¹ Header */}
         <header className="flex flex-col gap-4 rounded-3xl bg-white p-6 shadow-lg ring-1 ring-sky-100 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
             <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-sky-500">
@@ -261,8 +276,8 @@ export default function ChatPage() {
           </Link>
         </header>
 
-        {/* 🔹 Chat Section */}
-        <section className="grid gap-6 md:grid-cols-[minmax(0,1fr)_18rem]">
+        {/* ðŸ”¹ Chat Section */}
+        <section className="grid gap-6 md:grid-cols-[minmax(0,1fr)_16rem]">
           <div className="flex flex-col gap-4 rounded-3xl bg-white p-6 shadow-lg ring-1 ring-sky-100">
             {!hasQueryParams ? (
               <div className="flex flex-col items-center gap-4 text-center text-slate-600">
@@ -301,8 +316,18 @@ export default function ChatPage() {
                   </span>
 
                   {loading ? (
-                    <div className="flex justify-center py-10">
-                      <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
+                    <div className="flex gap-3">
+                      <Image
+                        src="/avatar/va.png"
+                        alt="Virtual Assistant"
+                        width={44}
+                        height={44}
+                        className="h-11 w-11 rounded-full border border-sky-100 bg-sky-50 object-cover"
+                      />
+                      <div className="space-y-3">
+                        <div className="h-4 w-24 animate-pulse rounded-full bg-slate-200" />
+                        <div className="h-24 max-w-md animate-pulse rounded-2xl bg-slate-200" />
+                      </div>
                     </div>
                   ) : error ? (
                     <div className="flex flex-col items-start gap-3 rounded-2xl border border-dashed border-sky-200 bg-sky-50/70 p-4 text-sm text-slate-600">
@@ -317,11 +342,14 @@ export default function ChatPage() {
                       </button>
                     </div>
                   ) : answer ? (
-                    <div className="flex items-end gap-4">
-                      {/* 🔹 Live2D Avatar */}
-                      <Live2DAvatar audio={audioEl} />
-
-                      {/* 🔹 Bubble Chat */}
+                    <div className="flex gap-3">
+                      <Image
+                        src="/avatar/va.png"
+                        alt="Virtual Assistant"
+                        width={44}
+                        height={44}
+                        className="h-11 w-11 rounded-full border border-sky-100 bg-sky-50 object-cover"
+                      />
                       <div className="max-w-[80%] rounded-2xl rounded-bl-none bg-white px-4 py-3 text-sm leading-relaxed text-slate-700 shadow-lg ring-1 ring-sky-100 typing-cursor">
                         <p>{typedText}</p>
                       </div>
@@ -339,7 +367,7 @@ export default function ChatPage() {
             )}
           </div>
 
-          {/* 🔹 Sidebar */}
+          {/* ðŸ”¹ Sidebar */}
           <aside className="flex flex-col gap-4">
             <div className="rounded-3xl bg-white p-6 shadow-lg ring-1 ring-sky-100">
               <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
@@ -356,7 +384,6 @@ export default function ChatPage() {
                 ))}
               </ul>
             </div>
-
             {hasQueryParams && suggestions.length > 0 && (
               <div className="rounded-3xl bg-white p-6 shadow-lg ring-1 ring-sky-100">
                 <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
@@ -384,3 +411,8 @@ export default function ChatPage() {
     </div>
   );
 }
+
+
+
+
+

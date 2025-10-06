@@ -16,7 +16,7 @@ export default function Home() {
 
         {/* kamera face recognition standby */}
         <div className="absolute bottom-6 right-6 z-50">
-          <FaceWatcher/>
+          <FaceWatcher />
         </div>
       </main>
 

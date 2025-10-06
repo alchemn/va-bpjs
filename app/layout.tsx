@@ -30,9 +30,23 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <Script
-          src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"
+          src="/js/live2dcubismcore.js"
           strategy="beforeInteractive"
+          async={false}
         />
+        <Script
+          id="cubism-check"
+          strategy="beforeInteractive"
+        >
+          {`
+            window.addEventListener('load', function() {
+              if (typeof live2dcubismcore === 'undefined') {
+                console.error("Live2D Cubism Core library not found. This may cause Live2D models to not work properly.");
+              }
+            });
+          `}
+        </Script>
+
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
