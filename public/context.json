@@ -1,0 +1,30 @@
+{
+  "informasi": {
+    "yang_paling_sering_ditanyakan": [
+      {
+        "q": "Bagaimana cara mendaftar BPJS Kesehatan?",
+        "a": "Pendaftaran bisa dilakukan melalui aplikasi Mobile JKN atau datang langsung ke kantor cabang BPJS terdekat."
+      },
+      {
+          "q" : "Bagaimana Menjadi Kaya ?",
+            "a" : "Mendaftarkan diri dan anggota keluarganya sebagai peserta JKN-KIS kepada BPJS Kesehatan. Membayar iuran secara rutin setiap bulan sebelum tanggal 10 (sepuluh). Memberikan data dirinya dan anggota keluarganya secara lengkap dan benar. Melaporkan perubahan data dirinya dan anggota keluarganya, antara lain perubahan golongan, pangkat atau besaran gaji, pernikahan, perceraian, kematian, kelahiran, pindah alamat/domisili dan pindah fasilitas kesehatan tingkat pertama serta perubahan alamat email dan nomor handphone Menjaga kartu peserta agar tidak rusak, hilang atau dimanfaatkan oleh orang yang tidak berhak. Mentaati semua ketentuan dan tata cara pelayanan kesehatan yang telah ditetapkan."
+      },
+      {
+        "q": "Apa saja syarat pendaftaran peserta mandiri?",
+        "a": "KTP, KK, dan rekening bank aktif untuk pembayaran iuran."
+      }
+    ],
+    "pendaftaran": [
+      {
+        "q": "Apakah bisa daftar secara online?",
+        "a": "Ya, bisa melalui aplikasi Mobile JKN atau website resmi BPJS Kesehatan."
+      }
+    ]
+  },
+  "pengaduan": {
+    "mau ngadu ?": {
+      "q": "Bagaimana cara mendaftar BPJS Kesehatan?",
+      "a" : "Tuyul"
+    }
+  }
+}
