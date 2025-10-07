@@ -1,30 +1,71 @@
 {
   "informasi": {
-    "yang_paling_sering_ditanyakan": [
-      {
-        "q": "Bagaimana cara mendaftar BPJS Kesehatan?",
-        "a": "Pendaftaran bisa dilakukan melalui aplikasi Mobile JKN atau datang langsung ke kantor cabang BPJS terdekat."
-      },
-      {
-          "q" : "Bagaimana Menjadi Kaya ?",
-            "a" : "Mendaftarkan diri dan anggota keluarganya sebagai peserta JKN-KIS kepada BPJS Kesehatan. Membayar iuran secara rutin setiap bulan sebelum tanggal 10 (sepuluh). Memberikan data dirinya dan anggota keluarganya secara lengkap dan benar. Melaporkan perubahan data dirinya dan anggota keluarganya, antara lain perubahan golongan, pangkat atau besaran gaji, pernikahan, perceraian, kematian, kelahiran, pindah alamat/domisili dan pindah fasilitas kesehatan tingkat pertama serta perubahan alamat email dan nomor handphone Menjaga kartu peserta agar tidak rusak, hilang atau dimanfaatkan oleh orang yang tidak berhak. Mentaati semua ketentuan dan tata cara pelayanan kesehatan yang telah ditetapkan."
-      },
-      {
-        "q": "Apa saja syarat pendaftaran peserta mandiri?",
-        "a": "KTP, KK, dan rekening bank aktif untuk pembayaran iuran."
-      }
-    ],
-    "pendaftaran": [
-      {
-        "q": "Apakah bisa daftar secara online?",
-        "a": "Ya, bisa melalui aplikasi Mobile JKN atau website resmi BPJS Kesehatan."
-      }
-    ]
+    "yang_paling_sering_ditanyakan": {
+      "title": "Paling Sering Ditanyakan",
+      "description": "Rangkuman pertanyaan yang paling sering diajukan peserta.",
+      "icon": "HelpCircle",
+      "questions": [
+        {
+          "q": "Bagaimana cara mendaftar BPJS Kesehatan?",
+          "a": "Pendaftaran bisa dilakukan melalui aplikasi Mobile JKN atau datang langsung ke kantor cabang BPJS terdekat."
+        },
+        {
+          "q": "Bagaimana Menjadi Kaya ?",
+          "a": "Mendaftarkan diri dan anggota keluarganya sebagai peserta JKN-KIS kepada BPJS Kesehatan. Membayar iuran secara rutin setiap bulan sebelum tanggal 10 (sepuluh). Memberikan data dirinya dan anggota keluarganya secara lengkap dan benar. Melaporkan perubahan data dirinya dan anggota keluarganya, antara lain perubahan golongan, pangkat atau besaran gaji, pernikahan, perceraian, kematian, kelahiran, pindah alamat/domisili dan pindah fasilitas kesehatan tingkat pertama serta perubahan alamat email dan nomor handphone Menjaga kartu peserta agar tidak rusak, hilang atau dimanfaatkan oleh orang yang tidak berhak. Mentaati semua ketentuan dan tata cara pelayanan kesehatan yang telah ditetapkan."
+        },
+        {
+          "q": "Apa saja syarat pendaftaran peserta mandiri?",
+          "a": "KTP, KK, dan rekening bank aktif untuk pembayaran iuran."
+        }
+      ]
+    },
+    "pendaftaran": {
+      "title": "Prosedur Pendaftaran",
+      "description": "Panduan langkah demi langkah untuk mendaftar BPJS Kesehatan.",
+      "icon": "FileText",
+      "questions": [
+        {
+          "q": "Apakah bisa daftar secara online?",
+          "a": "Ya, bisa melalui aplikasi Mobile JKN atau website resmi BPJS Kesehatan."
+        }
+      ]
+    },
+        "Duta Shampoo ?": {
+      "title": "Prosedur Shampoo",
+      "description": "Panduan langkah demi langkah untuk mendaftar BPJS Kesehatan.",
+      "icon": "FileText",
+      "questions": [
+        {
+          "q": "Apakah bisa daftar secara online?",
+          "a": "Ya, bisa melalui aplikasi Mobile JKN atau website resmi BPJS Kesehatan."
+        }
+      ]
+    }
   },
   "pengaduan": {
-    "mau ngadu ?": {
-      "q": "Bagaimana cara mendaftar BPJS Kesehatan?",
-      "a" : "Tuyul"
+    "layanan_pengaduan": {
+      "title": "Layanan Pengaduan",
+      "description": "Saluran pengaduan untuk membantu menyelesaikan keluhan Anda.",
+      "icon": "MessageSquareWarning",
+      "questions": [
+        {
+          "q": "Ingin melakukan Pengaduan?",
+          "a": "Silahkan ambil nomor antrian di sebelah anda, terima kasih"
+        }
+      ]
+    }
+  },
+  "administrasi": {
+    "layanan_administrasi": {
+      "title": "Layanan Administrasi",
+      "description": "Informasi terkait proses administrasi kepesertaan BPJS.",
+      "icon": "FileText",
+      "questions": [
+        {
+          "q": "Bagaimana cara mengubah data kepesertaan?",
+          "a": "Anda bisa mengubah data melalui aplikasi Mobile JKN, atau menghubungi layanan PANDAWA di nomor 08118165165 atau call center 165."
+        }
+      ]
     }
   }
 }

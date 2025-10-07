@@ -2,6 +2,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Main from "@/components/Main";
 import FaceWatcher from "@/components/FaceDetection";
+// import ChatMock from "@/components/ChatMock";
+
 
 export default function Home() {
   return (
@@ -13,6 +15,7 @@ export default function Home() {
         <div className="mx-auto w-full max-w-6xl px-6 py-12">
           <Main />
         </div>
+        {/* <ChatMock /> */}
 
         {/* kamera face recognition standby */}
         <div className="absolute bottom-6 right-6 z-50">

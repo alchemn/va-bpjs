@@ -7,7 +7,7 @@ export default function CubismScriptLoader() {
     <>
       <Script
         src="/js/live2dcubismcore.js"
-        strategy="beforeInteractive"
+        strategy="lazyOnload"
         onError={() => {
           console.error("Failed to load Live2D Cubism Core library. This may cause Live2D models to not work properly.");
         }}

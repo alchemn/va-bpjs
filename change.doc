@@ -1,0 +1,42 @@
+# Dokumentasi Perubahan Proyek Asisten Virtual BPJS
+
+Dokumen ini menjelaskan perubahan-perubahan yang telah dilakukan pada proyek agar lebih dinamis, memperbaiki beberapa bug, dan meningkatkan pengalaman pengguna.
+
+---
+
+### Perubahan 1: Memperbaiki Kategori yang Tidak Sesuai
+
+*   **Masalah Awal:** Di halaman "Informasi", muncul kategori "Layanan Mobile JKN" yang sebenarnya tidak ada di file konfigurasi `context.json`.
+*   **Penyebab:** Kategori tersebut ditulis secara statis (hardcoded) langsung di dalam kode komponen `CategoryList.tsx`.
+*   **Solusi:** Kode statis untuk kategori "Layanan Mobile JKN" tersebut telah dihapus. Sekarang, halaman hanya akan menampilkan kategori yang memang terdaftar di `context.json`.
+
+---
+
+### Perubahan 2: Memperbaiki Karakter Hilang & Suara (TTS)
+
+*   **Masalah Awal:** Saat melihat jawaban di halaman chat, ada karakter yang hilang (contoh: "Tuyul" menjadi "tyul"). Selain itu, fitur suara (Text-to-Speech) tidak berfungsi.
+*   **Penyebab:** Ada kesalahan penulisan nama model AI pada kode API Text-to-Speech (`app/api/tts/route.ts`). Kesalahan ini menyebabkan API gagal dan menimbulkan efek samping pada tampilan teks.
+*   **Solusi:** Nama model AI yang salah (`gpt-4o-mini-tts`) telah diperbaiki menjadi nama yang benar (`tts-1`). Ini membuat fitur suara berfungsi normal dan masalah karakter yang hilang pun teratasi.
+
+---
+
+### Perubahan 3: Membuat Tampilan Kategori Sepenuhnya Dinamis
+
+*   **Masalah Awal:** Untuk menambah atau mengubah sub-kategori (seperti judul, deskripsi, dan ikon), harus dilakukan dengan mengedit kode di dalam komponen React (`CategoryList.tsx` dan `QuestionListView.tsx`). Ini tidak praktis.
+*   **Penyebab:** Informasi detail kategori (judul, ikon, deskripsi) disimpan secara statis di dalam kode.
+*   **Solusi:**
+    1.  **Struktur `context.json` Diubah:** Struktur file `context.json` dirombak total. Sekarang, setiap sub-kategori menjadi sebuah objek yang berisi `title`, `description`, `icon`, dan `questions` (daftar pertanyaan).
+    2.  **Komponen Dibuat Cerdas:** Komponen-komponen terkait (`CategoryList.tsx`, `QuestionListView.tsx`, `ChatClient.tsx`) diubah agar dapat membaca struktur baru ini. Mereka tidak lagi menyimpan informasi statis, melainkan mengambil semua data langsung dari `context.json`.
+*   **Keuntungan:** Sekarang, Anda bisa **menambah, mengubah, atau menghapus sub-kategori cukup dengan mengedit file `context.json`** tanpa perlu menyentuh kode program sama sekali.
+
+---
+
+### Perubahan 4: Alur Cerdas untuk Halaman Pengaduan & Administrasi
+
+*   **Masalah Awal:** Halaman "Pengaduan" dan "Administrasi" memiliki alur yang sama dengan "Informasi" (harus memilih kategori dulu), padahal seringkali tujuannya hanya satu.
+*   **Penyebab:** Komponen `InfoVa.tsx` menerapkan logika yang sama untuk semua seksi.
+*   **Solusi:** Komponen `InfoVa.tsx` diberi logika baru yang lebih cerdas.
+    *   Sekarang, komponen akan memeriksa isi `context.json`.
+    *   Jika sebuah seksi (misalnya "Pengaduan") hanya punya **satu sub-kategori** yang isinya juga hanya **satu pertanyaan**, maka pengguna akan **langsung diarahkan ke halaman chat**.
+    *   Jika lebih dari itu, halaman akan tetap menampilkan pilihan kategori seperti biasa.
+*   **Keuntungan:** Pengguna mendapatkan alur yang lebih cepat dan efisien pada seksi yang tujuannya spesifik.
