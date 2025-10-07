@@ -6,10 +6,17 @@ interface QAItem {
   a: string;
 }
 
+interface CategoryData {
+  title: string;
+  description: string;
+  icon: string;
+  questions: QAItem[];
+}
+
 interface CategorySelectionViewProps {
   section: "informasi" | "pengaduan" | "administrasi";
   availableCategories: string[];
-  data: Record<string, QAItem[] | QAItem>;
+  data: Record<string, CategoryData>;
   onCategoryClick: (category: string) => void;
 }
 

@@ -145,9 +145,9 @@ export default function ChatClient() {
         const items = categoryData?.questions || [];
 
         if (!ignore) {
-          const current = items.find((item) => item.q === question);
+          const current = items.find((item: QAItem) => item.q === question);
           const cleanAnswer = current?.a ? String(current.a).trim() : "";
-          const otherItems = items.filter((item) => item.q !== question);
+          const otherItems = items.filter((item: QAItem) => item.q !== question);
 
           setAnswer(cleanAnswer);
           setTypedText("");
