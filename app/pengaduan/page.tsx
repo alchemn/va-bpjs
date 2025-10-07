@@ -52,8 +52,8 @@ export default function PengaduanChatPage() {
         } else {
           throw new Error("Tidak ada pertanyaan di seksi pengaduan.");
         }
-      } catch (err: any) {
-        setError(err.message || "Terjadi kesalahan.");
+      } catch (err: unknown) {
+        setError((err as Error).message || "Terjadi kesalahan.");
       } finally {
         setLoading(false);
       }

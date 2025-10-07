@@ -52,8 +52,8 @@ export default function AdministrasiChatPage() {
         } else {
           throw new Error("Tidak ada pertanyaan di seksi administrasi.");
         }
-      } catch (err: any) {
-        setError(err.message || "Terjadi kesalahan.");
+      } catch (err: unknown) {
+        setError((err as Error).message || "Terjadi kesalahan.");
       } finally {
         setLoading(false);
       }
