@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,26 +27,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <Script
-          src="/js/live2dcubismcore.js"
-          strategy="beforeInteractive"
-          async={false}
-        />
-        <Script
-          id="cubism-check"
-          strategy="beforeInteractive"
-        >
-          {`
-            window.addEventListener('load', function() {
-              if (typeof live2dcubismcore === 'undefined') {
-                console.error("Live2D Cubism Core library not found. This may cause Live2D models to not work properly.");
-              }
-            });
-          `}
-        </Script>
-
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

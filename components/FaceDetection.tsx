@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import * as tf from "@tensorflow/tfjs";
 import * as blazeface from "@tensorflow-models/blazeface";
 import "@tensorflow/tfjs-backend-webgl";
@@ -9,7 +10,7 @@ export default function FaceWatcher() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const lastGreetRef = useRef<number>(0);
   const speakingRef = useRef<boolean>(false);
-  const [showAvatar, setShowAvatar] = useState(false); // kontrol video heygen
+  const [showAvatar, setShowAvatar] = useState(false);
 
   const speak = (text: string) => {
     if (!("speechSynthesis" in window)) return;
@@ -21,7 +22,7 @@ export default function FaceWatcher() {
     speakingRef.current = true;
     utter.onend = () => {
       speakingRef.current = false;
-      setShowAvatar(false); // sembunyikan avatar pas selesai ngomong
+      setShowAvatar(false);
     };
 
     window.speechSynthesis.cancel();
@@ -43,7 +44,6 @@ export default function FaceWatcher() {
       await tf.ready();
 
       model = await blazeface.load();
-
       stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "user" },
         audio: false,
@@ -77,15 +77,14 @@ export default function FaceWatcher() {
       });
 
       if (hasFace && now - lastGreetRef.current > cooldownMs && !speakingRef.current) {
-  lastGreetRef.current = now;
-  setShowAvatar(true);
+        lastGreetRef.current = now;
+        setShowAvatar(true);
 
-  // kalau videonya udah ada suara, jangan pakai speechSynthesis lagi
-  const useHeyGenAudio = true;
-  if (!useHeyGenAudio) {
-    speak(text);
-  }
-}
+        const useHeyGenAudio = true;
+        if (!useHeyGenAudio) {
+          speak(text);
+        }
+      }
 
       animationId = requestAnimationFrame(detectLoop);
     };
@@ -103,30 +102,46 @@ export default function FaceWatcher() {
 
   return (
     <>
-      {/* Kamera tersembunyi */}
-      <div
-        className="fixed inset-0 pointer-events-none opacity-0 select-none"
-        style={{ zIndex: -1 }}
-      >
-        <video ref={videoRef} muted playsInline className="w-0 h-0" />
+      {/* Kamera tetap aktif tapi tersembunyi */}
+      <div className="absolute top-0 left-0 w-px h-px overflow-hidden">
+        <video ref={videoRef} muted playsInline />
       </div>
 
-      {/* Avatar muncul pas deteksi wajah */}
-      {showAvatar && (
- <div
-  className="fixed bottom-8 right-8 z-50 bg-white/80 backdrop-blur-md rounded-2xl p-2 shadow-2xl border border-sky-200 flex items-center justify-center animate-slide-up"
->
-  <video
-    src="/avatar/greet.mp4"
-    autoPlay
-    playsInline
-    controls={false}
-    className="w-60 h-60 rounded-xl object-cover"
-    onEnded={() => setShowAvatar(false)}
-  />
-</div>
-
-)}
+      {/* Avatar pakai transisi Framer Motion */}
+      <div className="fixed bottom-8 right-8 z-50 flex items-center justify-center">
+        <div className="relative w-60 h-60">
+          <AnimatePresence mode="wait">
+            {showAvatar ? (
+              <motion.video
+                key="greet"
+                src="/avatar/test.mp4"
+                autoPlay
+                playsInline
+                onEnded={() => setShowAvatar(false)}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.6, ease: "easeInOut" }}
+                className="absolute inset-0 w-full h-full rounded-xl object-cover shadow-2xl"
+              />
+            ) : (
+              <motion.video
+                key="idle"
+                src="/avatar/idle.mp4"
+                autoPlay
+                loop
+                muted
+                playsInline
+                initial={{ opacity: 0, scale: 1.05 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.8, ease: "easeInOut" }}
+                className="absolute inset-0 w-full h-full rounded-xl object-cover shadow-xl"
+              />
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
     </>
   );
 }

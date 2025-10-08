@@ -23,7 +23,7 @@ export function CategoryCard({
       onClick={!disabled ? onClick : undefined}
       className={`group relative w-full overflow-hidden rounded-2xl border transition-all duration-300 ${
         disabled
-          ? "cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400"
+          ? "cursor-not-allowed border-slate-200 bg-slate-50 text-redd-400"
           : "border-transparent bg-white shadow-md hover:-translate-y-1 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2"
       }`}
       disabled={disabled}
@@ -51,7 +51,7 @@ export function CategoryCard({
         <div className="space-y-2">
           <p className="text-base font-semibold text-slate-900">{title}</p>
           {description && (
-            <p className="text-sm leading-relaxed text-slate-500">{description}</p>
+            <p className="text-sm leading-relaxed text--500">{description}</p>
           )}
         </div>
       </div>
