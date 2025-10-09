@@ -11,6 +11,7 @@ export default function FaceWatcher() {
   const lastGreetRef = useRef<number>(0);
   const speakingRef = useRef<boolean>(false);
   const [showAvatar, setShowAvatar] = useState(false);
+  const [position, setPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   const speak = (text: string) => {
     if (!("speechSynthesis" in window)) return;
@@ -28,6 +29,17 @@ export default function FaceWatcher() {
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(utter);
   };
+
+  // 🔹 Simpan posisi ke localStorage
+  const savePosition = (x: number, y: number) => {
+    localStorage.setItem("avatarPosition", JSON.stringify({ x, y }));
+  };
+
+  // 🔹 Ambil posisi terakhir dari localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("avatarPosition");
+    if (saved) setPosition(JSON.parse(saved));
+  }, []);
 
   useEffect(() => {
     let stream: MediaStream | null = null;
@@ -100,6 +112,21 @@ export default function FaceWatcher() {
     };
   }, []);
 
+  // 🔹 Fungsi Snap ke Corner
+  const snapToCorner = (x: number, y: number) => {
+    const screenW = window.innerWidth;
+    const screenH = window.innerHeight;
+
+    const margin = 32; // jarak 2rem
+    const avatarSize = 240; // kira-kira tinggi/lebarnya avatar
+
+    // hitung posisi x dan y
+    const snapX = x < screenW / 2 - avatarSize / 2 ? -screenW / 2 + margin : screenW / 2 - avatarSize - margin;
+    const snapY = y < screenH / 2 - avatarSize / 2 ? -screenH / 2 + margin : screenH / 2 - avatarSize - margin;
+
+    return { x: snapX, y: snapY };
+  };
+
   return (
     <>
       {/* Kamera tetap aktif tapi tersembunyi */}
@@ -107,9 +134,31 @@ export default function FaceWatcher() {
         <video ref={videoRef} muted playsInline />
       </div>
 
-      {/* Avatar pakai transisi Framer Motion */}
-      <div className="fixed bottom-8 right-8 z-50 flex items-center justify-center">
-        <div className="relative w-60 h-60">
+      {/* Avatar bisa di-drag dan responsif */}
+      <motion.div
+        className="fixed z-50 flex items-center justify-center cursor-grab active:cursor-grabbing"
+        drag
+        dragMomentum={false}
+        dragElastic={0.2}
+        onDragEnd={(_, info) => {
+          const newX = position.x + info.offset.x;
+          const newY = position.y + info.offset.y;
+
+          // snap ke sudut terdekat
+          const snapped = snapToCorner(newX, newY);
+
+          setPosition(snapped);
+          savePosition(snapped.x, snapped.y);
+        }}
+        animate={{ x: position.x, y: position.y }}
+        transition={{ type: "spring", stiffness: 100, damping: 20 }}
+        style={{
+          bottom: "2rem",
+          right: "2rem",
+          touchAction: "none",
+        }}
+      >
+        <div className="relative w-40 h-40 sm:w-52 sm:h-52 md:w-60 md:h-60">
           <AnimatePresence mode="wait">
             {showAvatar ? (
               <motion.video
@@ -122,7 +171,7 @@ export default function FaceWatcher() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.6, ease: "easeInOut" }}
-                className="absolute inset-0 w-full h-full rounded-xl object-cover shadow-2xl"
+                className="absolute inset-0 w-full h-full rounded-full object-cover shadow-2xl"
               />
             ) : (
               <motion.video
@@ -136,12 +185,12 @@ export default function FaceWatcher() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.8, ease: "easeInOut" }}
-                className="absolute inset-0 w-full h-full rounded-xl object-cover shadow-xl"
+                className="absolute inset-0 w-full h-full rounded-full object-cover shadow-xl"
               />
             )}
           </AnimatePresence>
         </div>
-      </div>
+      </motion.div>
     </>
   );
 }

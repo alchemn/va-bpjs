@@ -71,18 +71,19 @@ export default function ChatClient() {
   const sectionParam = searchParams.get("section") as SectionKey | null;
   const category = searchParams.get("category");
   const question = searchParams.get("q");
+
   const [answer, setAnswer] = useState<string>("");
-  const [typedText, setTypedText] = useState<string>(""); // efek ngetik
+  const [typedText, setTypedText] = useState<string>("");
   const [suggestions, setSuggestions] = useState<QAItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [thinking, setThinking] = useState(false);
 
   const IDLE_TIMEOUT = 30 * 1000; // 30 detik
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
-
     const resetTimer = () => {
       clearTimeout(timer);
       timer = setTimeout(() => {
@@ -101,10 +102,7 @@ export default function ChatClient() {
   }, [router, IDLE_TIMEOUT]);
 
   const meta = useMemo(() => {
-    if (sectionParam && sectionParam in sectionMeta) {
-      return sectionMeta[sectionParam];
-    }
-
+    if (sectionParam && sectionParam in sectionMeta) return sectionMeta[sectionParam];
     return {
       title: "BPJS Virtual Assistant",
       subtitle:
@@ -120,7 +118,6 @@ export default function ChatClient() {
 
   useEffect(() => {
     let ignore = false;
-
     const loadAnswer = async () => {
       if (!sectionParam || !category || !question) {
         if (!ignore) {
@@ -139,7 +136,6 @@ export default function ChatClient() {
       try {
         const res = await fetch("/context.json");
         if (!res.ok) throw new Error("Failed to fetch context data");
-
         const data = await res.json();
         const categoryData = data?.[sectionParam]?.[category];
         const items = categoryData?.questions || [];
@@ -172,7 +168,6 @@ export default function ChatClient() {
     };
   }, [sectionParam, category, question, reloadKey]);
 
-
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -183,30 +178,29 @@ export default function ChatClient() {
 
     let isCancelled = false;
     let typingTimer: NodeJS.Timeout | null = null;
+    let thinkingTimer: NodeJS.Timeout | null = null;
 
-    const startTyping = () => {
-      let index = 0;
+    const startTyping = (fullAnswer: string) => {
+      let currentIndex = 0;
+      let currentTypedText = "";
       typingTimer = setInterval(() => {
         if (isCancelled) {
-          if (typingTimer) {
-            clearInterval(typingTimer);
-          }
-          return;
-        }
-
-        if (index >= answer.length) {
           if (typingTimer) clearInterval(typingTimer);
           return;
         }
-
-        setTypedText((prev) => prev + answer.charAt(index));
-        index += 1;
+        if (currentIndex >= fullAnswer.length) {
+          if (typingTimer) clearInterval(typingTimer);
+          return;
+        }
+        currentTypedText += fullAnswer.charAt(currentIndex);
+        setTypedText(currentTypedText);
+        currentIndex += 1;
       }, 30);
     };
 
     const playAndType = async () => {
-      setTypedText("");
-
+      setThinking(true);
+      
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
@@ -217,19 +211,24 @@ export default function ChatClient() {
         audioRef.current = newAudio || null;
 
         if (!isCancelled) {
-          startTyping();
-          if (audioRef.current) {
-            audioRef.current.play().catch((playErr) => {
-              if (playErr.name !== "AbortError") {
-                console.warn("Gagal memutar audio:", playErr);
+          // kasih efek mikir 1,5 detik sebelum ngetik
+          thinkingTimer = setTimeout(() => {
+            if (!isCancelled) {
+              setThinking(false);
+              startTyping(answer);
+              if (audioRef.current) {
+                audioRef.current.play().catch((err) => {
+                  if (err.name !== "AbortError") console.warn(err);
+                });
               }
-            });
-          }
+            }
+          }, 1500);
         }
       } catch (err) {
         console.error("TTS error:", err);
         if (!isCancelled) {
-          startTyping();
+          setThinking(false);
+          startTyping(answer);
         }
       }
     };
@@ -238,13 +237,14 @@ export default function ChatClient() {
 
     return () => {
       isCancelled = true;
-      if (typingTimer) {
-        clearInterval(typingTimer);
-      }
+      setTypedText(""); // Reset text hanya di cleanup
+      setThinking(false);
+      if (typingTimer) clearInterval(typingTimer);
+      if (thinkingTimer) clearTimeout(thinkingTimer);
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
-        audioRef.current.src = "";
+      
       }
     };
   }, [answer]);
@@ -255,7 +255,7 @@ export default function ChatClient() {
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-sky-50 via-white to-white px-4 py-8">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-        {/* 🔹 Header */}
+        {/* HEADER */}
         <header className="flex flex-col gap-4 rounded-3xl bg-white p-6 shadow-lg ring-1 ring-sky-100 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
             <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-sky-500">
@@ -276,7 +276,7 @@ export default function ChatClient() {
           </Link>
         </header>
 
-        {/* 🔹 Chat Section */}
+        {/* CHAT */}
         <section className="grid gap-6 md:grid-cols-[minmax(0,1fr)_16rem]">
           <div className="flex flex-col gap-4 rounded-3xl bg-white p-6 shadow-lg ring-1 ring-sky-100">
             {!hasQueryParams ? (
@@ -341,7 +341,24 @@ export default function ChatClient() {
                         Coba lagi
                       </button>
                     </div>
+                  ) : thinking ? (
+                    // Efek Mikir Dulu
+                    <div className="flex gap-3 items-end">
+                      <Image
+                        src="/avatar/va.png"
+                        alt="Virtual Assistant"
+                        width={44}
+                        height={44}
+                        className="h-11 w-11 rounded-full border border-sky-100 bg-sky-50 object-cover"
+                      />
+                      <div className="flex items-center gap-2 rounded-2xl bg-white px-4 py-2 shadow ring-1 ring-sky-100">
+                        <span className="animate-bounce delay-0 h-2 w-2 rounded-full bg-sky-400" />
+                        <span className="animate-bounce delay-150 h-2 w-2 rounded-full bg-sky-400" />
+                        <span className="animate-bounce delay-300 h-2 w-2 rounded-full bg-sky-400" />
+                      </div>
+                    </div>
                   ) : answer ? (
+                    // Efek Ngetik
                     <div className="flex gap-3">
                       <Image
                         src="/avatar/va.png"
@@ -367,7 +384,7 @@ export default function ChatClient() {
             )}
           </div>
 
-          {/* 🔹 Sidebar */}
+          {/* Sidebar */}
           <aside className="flex flex-col gap-4">
             <div className="rounded-3xl bg-white p-6 shadow-lg ring-1 ring-sky-100">
               <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
@@ -384,6 +401,7 @@ export default function ChatClient() {
                 ))}
               </ul>
             </div>
+
             {hasQueryParams && suggestions.length > 0 && (
               <div className="rounded-3xl bg-white p-6 shadow-lg ring-1 ring-sky-100">
                 <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
