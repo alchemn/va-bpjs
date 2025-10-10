@@ -1,21 +1,49 @@
 {
-  "informasi": { 
+  "informasi": {
     "yang_paling_sering_ditanyakan": {
       "title": "Paling Sering Ditanyakan",
       "description": "Rangkuman pertanyaan yang paling sering diajukan peserta.",
       "icon": "HelpCircle",
       "questions": [
         {
-          "q": "Bagaimana cara mendaftar BPJS Kesehatan?",
-          "a": "Pendaftaran bisa dilakukan melalui aplikasi Mobile JKN atau datang langsung ke kantor cabang BPJS terdekat."
+          "q": "Bagaimana cara melakukan pendaftaran baru?",
+          "a": "Layanan ini digunakan bagi masyarakat yang belum terdaftar sebagai peserta JKN-KIS.\n\n📋 Persyaratan:\n- Kartu Tanda Penduduk (KTP)\n- Kartu Keluarga (KK)\n- Rekening bank (BNI, BRI, BTN, Mandiri, atau BCA) atas nama peserta\n- Alamat email aktif\n\n🪪 Cara daftar:\n1. Melalui aplikasi Mobile JKN pada menu Pendaftaran Peserta Baru, atau\n2. Datang langsung ke kantor BPJS Kesehatan terdekat dan mengambil nomor antrean Pendaftaran Baru.\n\nKepesertaan akan aktif setelah pembayaran iuran pertama dilakukan."
         },
         {
-          "q": "Bagaimana Menjadi Kaya ?",
-          "a": "Mendaftarkan diri dan anggota keluarganya sebagai peserta JKN-KIS kepada BPJS Kesehatan. Membayar iuran secara rutin setiap bulan sebelum tanggal 10 (sepuluh). Memberikan data dirinya dan anggota keluarganya secara lengkap dan benar. Melaporkan perubahan data dirinya dan anggota keluarganya, antara lain perubahan golongan, pangkat atau besaran gaji, pernikahan, perceraian, kematian, kelahiran, pindah alamat/domisili dan pindah fasilitas kesehatan tingkat pertama serta perubahan alamat email dan nomor handphone Menjaga kartu peserta agar tidak rusak, hilang atau dimanfaatkan oleh orang yang tidak berhak. Mentaati semua ketentuan dan tata cara pelayanan kesehatan yang telah ditetapkan."
+          "q": "Penambahan Anggota Keluarga",
+          "a": "Digunakan untuk menambahkan anggota keluarga baru, seperti bayi baru lahir atau anggota keluarga yang belum terdaftar.\n\n📋 Persyaratan:\n- Kartu Keluarga (KK) terbaru\n- KTP Kepala Keluarga\n- Surat keterangan lahir atau akta lahir (untuk bayi)\n\n🍼 Catatan: Bayi baru lahir wajib didaftarkan paling lambat 28 hari setelah dilahirkan.\n\n💻 Cara daftar: Melalui aplikasi Mobile JKN atau datang langsung ke kantor BPJS untuk mengambil nomor antrean layanan Penambahan Anggota Keluarga."
         },
         {
-          "q": "Apa saja syarat pendaftaran peserta mandiri?",
-          "a": "KTP, KK, dan rekening bank aktif untuk pembayaran iuran."
+          "q": "Pengaktifan Kembali Status Kepesertaan",
+          "a": "Layanan ini untuk peserta yang statusnya nonaktif akibat menunggak iuran.\n\n💳 Syarat dan ketentuan:\n- Melunasi seluruh tunggakan iuran JKN-KIS.\n- Pembayaran dapat dilakukan melalui bank, PPOB, Mobile JKN, e-commerce, atau kantor pos.\n\n🕒 Proses aktivasi: Status akan aktif kembali dalam waktu 1x24 jam setelah sistem BPJS menerima pembayaran.\n\n🔎 Cek status aktif melalui aplikasi Mobile JKN, Care Center 165, atau langsung di kantor BPJS Kesehatan."
+        },
+        {
+          "q": "Perubahan / Perbaikan Data",
+          "a": "Layanan ini digunakan jika terdapat ketidaksesuaian data peserta, seperti NIK tidak padan, kesalahan nama, tanggal lahir, alamat, atau perubahan status keluarga.\n\n📋 Persyaratan:\n- KTP dan KK asli\n- Dokumen pendukung perubahan data (misalnya akta nikah, akta kelahiran, surat pindah, atau surat keterangan resmi lainnya)\n\n📍 Prosedur:\n1. Datang ke kantor BPJS Kesehatan dengan membawa dokumen lengkap.\n2. Ambil nomor antrean layanan Perubahan Data.\n3. Petugas akan memutakhirkan data Anda agar sesuai dengan data Dukcapil."
+        },
+        {
+          "q": "Ubah Fasilitas Kesehatan Tingkat Pertama (FKTP)",
+          "a": "Layanan ini untuk peserta yang ingin mengganti FKTP karena pindah domisili, pensiun, atau alasan lain.\n\n📋 Persyaratan:\n- KTP dan KK\n- Surat keterangan pindah domisili (jika pindah alamat)\n- Surat keterangan pensiun/pendidikan (jika relevan)\n\n💻 Cara ubah:\n- Melalui aplikasi Mobile JKN di menu Perubahan Data Peserta → Fasilitas Kesehatan.\n- Atau datang langsung ke kantor BPJS Kesehatan.\n\n🕒 Perubahan FKTP hanya dapat dilakukan setelah 3 bulan terdaftar di FKTP sebelumnya dan berlaku efektif setiap tanggal 1 bulan berikutnya."
+        },
+        {
+          "q": "Pengurangan Anggota Keluarga",
+          "a": "Digunakan untuk menghapus anggota keluarga dari data kepesertaan karena meninggal dunia, menikah, atau sudah tidak menjadi tanggungan.\n\n📋 Persyaratan:\n- Kartu Keluarga (KK)\n- Surat keterangan kematian, akta nikah, atau surat keterangan resmi lainnya\n\n📍 Prosedur:\nDatang ke kantor BPJS Kesehatan dan ambil nomor antrean Pengurangan Anggota Keluarga, atau ajukan melalui layanan PANDAWA (WhatsApp 08118165165)."
+        },
+        {
+          "q": "Perubahan Kelas Rawat",
+          "a": "Layanan ini digunakan untuk peserta mandiri (PBPU/BP) yang ingin menaikkan atau menurunkan kelas rawat.\n\n📋 Persyaratan:\n- KTP dan KK\n- Bukti pembayaran iuran terakhir\n\n💰 Catatan:\nPerubahan kelas akan memengaruhi besaran iuran bulanan dan berlaku mulai bulan berikutnya setelah permohonan disetujui dan iuran dibayarkan sesuai kelas baru."
+        },
+        {
+          "q": "Pengaktifan Kembali Nomor Pembayaran Iuran yang Telah Lewat Masa Bayar",
+          "a": "Layanan ini digunakan untuk peserta yang tidak dapat melakukan pembayaran karena Virtual Account (VA) sudah tidak aktif.\n\n📋 Syarat:\n- KTP peserta\n- Nomor VA lama (jika ada)\n\n📍 Prosedur:\n1. Hubungi layanan PANDAWA atau datang ke kantor BPJS Kesehatan.\n2. Petugas akan membantu mengaktifkan kembali nomor VA agar dapat digunakan untuk pelunasan tunggakan."
+        },
+        {
+          "q": "Perubahan Status Peserta Anak 21 Tahun ke Peserta Mandiri",
+          "a": "Layanan ini digunakan untuk anak peserta yang telah berusia 21 tahun dan belum menikah.\n\n📋 Persyaratan:\n- KTP dan KK atas nama sendiri\n- Rekening bank (BNI, BRI, BTN, Mandiri, atau BCA)\n- Alamat email aktif\n- Surat keterangan aktif kuliah (jika masih berstatus mahasiswa, maksimal usia 25 tahun)\n\n📍 Prosedur:\n1. Daftar melalui aplikasi Mobile JKN di menu Pendaftaran Peserta Baru, atau\n2. Datang langsung ke kantor BPJS dan ambil nomor antrean Pendaftaran Baru.\n\nStatus akan aktif kembali setelah pembayaran iuran pertama dilakukan."
+        },
+        {
+          "q": "Program REHAB (Rencana Pembayaran Bertahap)",
+          "a": "Layanan ini diperuntukkan bagi peserta mandiri atau badan usaha yang memiliki tunggakan iuran dan ingin melunasinya secara bertahap.\n\n📋 Persyaratan:\n- KTP dan KK\n- Nomor Virtual Account (VA) aktif\n- Jumlah tunggakan iuran\n\n💻 Cara daftar:\n- Melalui aplikasi Mobile JKN di menu REHAB (Rencana Pembayaran Bertahap), atau\n- Datang ke kantor BPJS Kesehatan untuk mendaftar secara langsung.\n\nTunggakan dapat dicicil maksimal selama 12 bulan. Status kepesertaan akan aktif kembali setelah tunggakan dan iuran berjalan dilunasi."
         }
       ]
     },
@@ -25,18 +53,7 @@
       "icon": "FileText",
       "questions": [
         {
-          "q": "Apakah bisa daftar secara online?",
-          "a": "Ya, bisa melalui aplikasi Mobile JKN atau website resmi BPJS Kesehatan."
-        }
-      ]
-    },
-        "Duta Shampoo ?": {
-      "title": "Prosedur Shampoo",
-      "description": "Panduan langkah demi langkah untuk mendaftar BPJS Kesehatan.",
-      "icon": "FileText",
-      "questions": [
-        {
-          "q": "Apakah bisa daftar secara online?",
+          "q": "Apakah saya bisa mendaftar BPJS secara online?",
           "a": "Ya, bisa melalui aplikasi Mobile JKN atau website resmi BPJS Kesehatan."
         }
       ]

@@ -30,12 +30,10 @@ export default function FaceWatcher() {
     window.speechSynthesis.speak(utter);
   };
 
-  // 🔹 Simpan posisi ke localStorage
   const savePosition = (x: number, y: number) => {
     localStorage.setItem("avatarPosition", JSON.stringify({ x, y }));
   };
 
-  // 🔹 Ambil posisi terakhir dari localStorage
   useEffect(() => {
     const saved = localStorage.getItem("avatarPosition");
     if (saved) setPosition(JSON.parse(saved));
@@ -140,16 +138,27 @@ export default function FaceWatcher() {
         drag
         dragMomentum={false}
         dragElastic={0.2}
-        onDragEnd={(_, info) => {
-          const newX = position.x + info.offset.x;
-          const newY = position.y + info.offset.y;
+       onDragEnd={(_, info) => {
+  const newX = position.x + info.offset.x;
+  const newY = position.y + info.offset.y;
 
-          // snap ke sudut terdekat
-          const snapped = snapToCorner(newX, newY);
+  const screenW = window.innerWidth;
+  const screenH = window.innerHeight;
+  const avatarSize = 240;
+  const margin = 32;
 
-          setPosition(snapped);
-          savePosition(snapped.x, snapped.y);
-        }}
+  const halfW = screenW / 2 - avatarSize / 2 - margin;
+  const halfH = screenH / 2 - avatarSize / 2 - margin;
+
+  const clampedX = Math.max(-halfW, Math.min(halfW, newX));
+  const clampedY = Math.max(-halfH, Math.min(halfH, newY));
+
+  const snapped = snapToCorner(clampedX, clampedY);
+
+  setPosition(snapped);
+  savePosition(snapped.x, snapped.y);
+}}
+
         animate={{ x: position.x, y: position.y }}
         transition={{ type: "spring", stiffness: 100, damping: 20 }}
         style={{
