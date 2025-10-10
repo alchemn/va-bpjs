@@ -37,7 +37,7 @@ export default function CategoriesSection() {
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">
           Kategori layanan
         </p>
-        <h2 className="text-3xl font-bold text-slate-900">Pilih jalur bantuan sesuai kebutuhan Anda</h2>
+        <h2 className="text-3xl font-bold text-slate-900">Pilih jalur loket sesuai kebutuhan Anda</h2>
         <p className="mx-auto max-w-2xl text-sm text-slate-600">
           Kami merangkum berbagai pertanyaan dan panduan ke dalam tiga kategori utama agar Anda dapat menemukan jawaban paling relevan dengan cepat.
         </p>
