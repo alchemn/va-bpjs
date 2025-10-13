@@ -382,6 +382,12 @@ export default function ChatClient() {
                 </div>
               </div>
             )}
+          <div className="flex">
+              <form>
+                <label htmlFor="question">Question</label>
+                <input type="text" id="question" placeholder="Silahkan Ketikkan Pertanyaan Anda Disini"/>
+              </form>
+          </div>
           </div>
 
           {/* Sidebar */}

@@ -6,7 +6,6 @@ import ErrorView from "./info-va/ErrorView";
 import CategorySelectionView from "./info-va/CategorySelectionView";
 import QuestionListView from "./info-va/QuestionListView";
 
-// Tipe data yang sesuai dengan context.json
 interface QAItem {
   q: string;
   a: string;
