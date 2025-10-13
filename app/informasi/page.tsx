@@ -119,7 +119,7 @@ export default function InformasiPage() {
     setConfidence(null);
 
     try {
-      const res = await fetch("/api/chat", {
+      const res = await fetch("/api/message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: trimmed }),
