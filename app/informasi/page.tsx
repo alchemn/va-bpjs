@@ -265,32 +265,6 @@ export default function InformasiPage() {
         index += 1;
       }, 30);
     };
-
-    // const playAndType = async () => {
-    //   setThinking(true);
-    //   try {
-    //     const newAudio = await speakTTS(answer);
-    //     audioRef.current = newAudio || null;
-
-    //     thinkingTimer = setTimeout(() => {
-    //       if (isCancelled) return;
-    //       setThinking(false);
-    //       startTyping(answer);
-    //       if (audioRef.current) {
-    //         audioRef.current
-    //           .play()
-    //           .catch((err) => err.name !== "AbortError" && console.warn(err));
-    //       }
-    //     }, 1200);
-    //   } catch (err) {
-    //     console.error("TTS error:", err);
-    //     if (!isCancelled) {
-    //       setThinking(false);
-    //       startTyping(answer);
-    //     }
-    //   }
-    // };
-
     const playAndType = async () => {
       setThinking(true)
       try {
@@ -332,6 +306,9 @@ export default function InformasiPage() {
       if (currentAudio) {
         currentAudio.pause();
         currentAudio.currentTime = 0;
+      }
+      if("speechSynthesis" in window) {
+        window.speechSynthesis.cancel()
       }
     };
   }, [answer]);
