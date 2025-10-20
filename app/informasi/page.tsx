@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { speakTTS } from "@/lib/speak";
+// import { speakTTS } from "@/lib/speak";
 import {
   ArrowLeft,
   CircleUser,
@@ -231,14 +231,22 @@ export default function InformasiPage() {
   };
 
   useEffect(() => {
+  if ("speechSynthesis" in window) {
+    const dummy = new SpeechSynthesisUtterance(" ");
+    dummy.lang = "id-ID";
+    window.speechSynthesis.speak(dummy);
+  }
+}, []);
+
+  useEffect(() => {
     if (!answer) {
       setTypedAnswer("");
       return;
     }
-
+    const currentAudio = audioRef.current;
     let isCancelled = false;
     let typingTimer: NodeJS.Timeout | null = null;
-    let thinkingTimer: NodeJS.Timeout | null = null;
+    const thinkingTimer: NodeJS.Timeout | null = null;
 
     const startTyping = (fullText: string) => {
       let index = 0;
@@ -258,30 +266,61 @@ export default function InformasiPage() {
       }, 30);
     };
 
-    const playAndType = async () => {
-      setThinking(true);
-      try {
-        const newAudio = await speakTTS(answer);
-        audioRef.current = newAudio || null;
+    // const playAndType = async () => {
+    //   setThinking(true);
+    //   try {
+    //     const newAudio = await speakTTS(answer);
+    //     audioRef.current = newAudio || null;
 
-        thinkingTimer = setTimeout(() => {
-          if (isCancelled) return;
-          setThinking(false);
-          startTyping(answer);
-          if (audioRef.current) {
-            audioRef.current
-              .play()
-              .catch((err) => err.name !== "AbortError" && console.warn(err));
-          }
-        }, 1200);
-      } catch (err) {
-        console.error("TTS error:", err);
-        if (!isCancelled) {
-          setThinking(false);
-          startTyping(answer);
+    //     thinkingTimer = setTimeout(() => {
+    //       if (isCancelled) return;
+    //       setThinking(false);
+    //       startTyping(answer);
+    //       if (audioRef.current) {
+    //         audioRef.current
+    //           .play()
+    //           .catch((err) => err.name !== "AbortError" && console.warn(err));
+    //       }
+    //     }, 1200);
+    //   } catch (err) {
+    //     console.error("TTS error:", err);
+    //     if (!isCancelled) {
+    //       setThinking(false);
+    //       startTyping(answer);
+    //     }
+    //   }
+    // };
+
+    const playAndType = async () => {
+      setThinking(true)
+      try {
+        if('speechSynthesis' in window){
+          const utter = new SpeechSynthesisUtterance(answer)
+          utter.lang ="id-ID";
+          utter.rate = 0.9;
+          utter.pitch= 1.1;
+          utter.volume= 1;
+          
+          setTimeout(() => {
+            window.speechSynthesis.speak(utter)
+          },300)
+
+
+          setTimeout(() => {
+            if(!isCancelled) {
+              setThinking(false);
+              startTyping(answer)
+            }
+          },1200)
+        }
+      } catch (error) {
+        console.error("Speech Error", error)
+        if(!isCancelled){
+          setThinking(false)
+          startTyping(answer)
         }
       }
-    };
+    }
 
     playAndType();
 
@@ -290,9 +329,9 @@ export default function InformasiPage() {
       setThinking(false);
       if (typingTimer) clearInterval(typingTimer);
       if (thinkingTimer) clearTimeout(thinkingTimer);
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
       }
     };
   }, [answer]);

@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { speakTTS } from "@/lib/speak";
+// import { speakTTS } from "@/lib/speak";
 import {
   ArrowLeft,
   CircleUser,
@@ -65,7 +65,8 @@ export default function PengaduanChatPage() {
   // Efek mengetik & suara (TTS)
   useEffect(() => {
     if (!answer) return;
-
+     
+    const currentAudio = audioRef.current;
     let isCancelled = false;
     let typingTimer: NodeJS.Timeout | null = null;
 
@@ -82,32 +83,60 @@ export default function PengaduanChatPage() {
       }, 30);
     };
 
+    // const playAndType = async () => {
+    //   if (audioRef.current) {
+    //     audioRef.current.pause();
+    //     audioRef.current.currentTime = 0;
+    //   }
+    //   try {
+    //     const newAudio = await speakTTS(answer);
+    //     audioRef.current = newAudio || null;
+    //     if (!isCancelled) {
+    //       startTyping();
+    //       audioRef.current?.play().catch(console.warn);
+    //     }
+    //   } catch (err) {
+    //     console.error("TTS Gagal:", err);
+    //     if (!isCancelled) startTyping(); // Jika TTS gagal, tetap tampilkan teks
+    //   }
+    // };
+
     const playAndType = async () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
       try {
-        const newAudio = await speakTTS(answer);
-        audioRef.current = newAudio || null;
-        if (!isCancelled) {
-          startTyping();
-          audioRef.current?.play().catch(console.warn);
+        if('speechSynthesis' in window){
+          const utter = new SpeechSynthesisUtterance(answer)
+          utter.lang ="id-ID";
+          utter.rate = 0.9;
+          utter.pitch= 1.1;
+          utter.volume= 1;
+          
+          setTimeout(() => {
+            window.speechSynthesis.speak(utter)
+          },300)
+
+
+          setTimeout(() => {
+            if(!isCancelled) {
+              startTyping()
+            }
+          },1200)
         }
-      } catch (err) {
-        console.error("TTS Gagal:", err);
-        if (!isCancelled) startTyping(); // Jika TTS gagal, tetap tampilkan teks
+      } catch (error) {
+        console.error("Speech Error", error)
+        if(!isCancelled){
+          startTyping()
+        }
       }
-    };
+    }
 
     playAndType();
 
     return () => {
       isCancelled = true;
       if (typingTimer) clearInterval(typingTimer);
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.src = "";
       }
     };
   }, [answer]);

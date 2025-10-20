@@ -1,57 +1,63 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { speakTTS } from "@/lib/speak";
+// import { speakTTS } from "@/lib/speak";
 import {
   ArrowLeft,
   CircleUser,
   MessageCircle,
   Loader2,
+  ChevronDown,
 } from "lucide-react";
 
 // Definisikan tipe data agar sesuai dengan context.json
 interface QAItem {
   q: string;
-  a: string;
+  a: string[];
 }
 interface CategoryData {
   title: string;
-  description: string;
-  icon: string;
-  questions: QAItem[];
+  question: QAItem[];
 }
+type AdministrasiData = Record<string, CategoryData>;
+
+const sanitizeAnswerItem = (item: string) => item.replace(/^\d+\.\s*/, "").trim();
+const formatAnswerText = (items: string[]) =>
+  items
+    .map((item, idx) => `${idx + 1}. ${sanitizeAnswerItem(item)}`)
+    .join("\n");
 
 export default function AdministrasiChatPage() {
-  const [question, setQuestion] = useState<string>("");
-  const [answer, setAnswer] = useState<string>("");
+  const [question, setQuestion] = useState<string | null>(null);
+  const [answer, setAnswer] = useState<string | null>(null);
   const [typedText, setTypedText] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [categories, setCategories] = useState<Array<{ key: string } & CategoryData>>([]);
+  const [expandedCategoryKey, setExpandedCategoryKey] = useState<string | null>(null);
+  const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
+
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch("/context.json");
+        const res = await fetch("/administrasi.json");
         if (!res.ok) throw new Error("Gagal memuat data.");
         const data = await res.json();
-        
-        const administrasiSection = data.administrasi;
-        if (!administrasiSection) throw new Error("Seksi administrasi tidak ditemukan.");
 
-        // Ambil kategori pertama dan pertanyaan pertama
-        const firstCategoryKey = Object.keys(administrasiSection)[0];
-        const firstCategory: CategoryData = administrasiSection[firstCategoryKey];
-        const firstQA: QAItem | undefined = firstCategory.questions?.[0];
+        const administrasiData: AdministrasiData = data;
+        const parsedCategories = Object.entries(administrasiData).map(
+          ([key, value]) => ({ key, ...value })
+        );
 
-        if (firstQA) {
-          setQuestion(firstQA.q);
-          setAnswer(firstQA.a);
-        } else {
-          throw new Error("Tidak ada pertanyaan di seksi administrasi.");
+        if (!parsedCategories.length) {
+          throw new Error("Data administrasi kosong.");
         }
+
+        setCategories(parsedCategories);
+        setExpandedCategoryKey(parsedCategories[0]?.key ?? null);
       } catch (err: unknown) {
         setError((err as Error).message || "Terjadi kesalahan.");
       } finally {
@@ -62,55 +68,89 @@ export default function AdministrasiChatPage() {
     fetchData();
   }, []);
 
+  //Typing Effect Mas Bro
+useEffect(() => {
+  if (!answer) {
+    setTypedText("");
+    return;
+  }
+
+  let isCancelled = false;
+  let typingTimer: NodeJS.Timeout | null = null;
+
+  const startTyping = () => {
+    setTypedText("");
+    let index = 0;
+    typingTimer = setInterval(() => {
+      if (isCancelled || index >= answer.length) {
+        if (typingTimer) clearInterval(typingTimer);
+        return;
+      }
+      setTypedText((prev) => prev + answer.charAt(index));
+      index++;
+    }, 30);
+  };
+
+  startTyping();
+
+  return () => {
+    isCancelled = true;
+    if (typingTimer) clearInterval(typingTimer);
+  };
+}, [answer]);
+
   // Efek mengetik & suara (TTS)
-  useEffect(() => {
-    if (!answer) return;
+  // useEffect(() => {
+  //   if (!answer) {
+  //     setTypedText("");
+  //     return;
+  //   }
 
-    let isCancelled = false;
-    let typingTimer: NodeJS.Timeout | null = null;
+  //   let isCancelled = false;
+  //   let typingTimer: NodeJS.Timeout | null = null;
 
-    const startTyping = () => {
-      setTypedText("");
-      let index = 0;
-      typingTimer = setInterval(() => {
-        if (isCancelled || index >= answer.length) {
-          if (typingTimer) clearInterval(typingTimer);
-          return;
-        }
-        setTypedText((prev) => prev + answer.charAt(index));
-        index++;
-      }, 30);
-    };
+  //   const startTyping = () => {
+  //     setTypedText("");
+  //     let index = 0;
+  //     typingTimer = setInterval(() => {
+  //       if (isCancelled || index >= answer.length) {
+  //         if (typingTimer) clearInterval(typingTimer);
+  //         return;
+  //       }
+  //       setTypedText((prev) => prev + answer.charAt(index));
+  //       index++;
+  //     }, 30);
+  //   };
 
-    const playAndType = async () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
-      try {
-        const newAudio = await speakTTS(answer);
-        audioRef.current = newAudio || null;
-        if (!isCancelled) {
-          startTyping();
-          audioRef.current?.play().catch(console.warn);
-        }
-      } catch (err) {
-        console.error("TTS Gagal:", err);
-        if (!isCancelled) startTyping(); // Jika TTS gagal, tetap tampilkan teks
-      }
-    };
+  //   const playAndType = async () => {
+  //     if (audioRef.current) {
+  //       audioRef.current.pause();
+  //       audioRef.current.currentTime = 0;
+  //     }
+  //     try {
+  //       const newAudio = await speakTTS(answer);
+  //       audioRef.current = newAudio || null;
+  //       if (!isCancelled) {
+  //         startTyping();
+  //         audioRef.current?.play().catch(console.warn);
+  //       }
+  //     } catch (err) {
+  //       console.error("TTS Gagal:", err);
+  //       if (!isCancelled) startTyping(); // Jika TTS gagal, tetap tampilkan teks
+  //     }
+  //   };
 
-    playAndType();
+  //   playAndType();
 
-    return () => {
-      isCancelled = true;
-      if (typingTimer) clearInterval(typingTimer);
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
-      }
-    };
-  }, [answer]);
+  //   return () => {
+  //     isCancelled = true;
+  //     if (typingTimer) clearInterval(typingTimer);
+  //     if (audioRef.current) {
+  //       audioRef.current.pause();
+  //       audioRef.current.src = "";
+  //     }
+  //   };
+  // }, [answer]);
 
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-sky-50 via-white to-white px-4 py-8">
@@ -150,8 +190,71 @@ export default function AdministrasiChatPage() {
               <div className="text-red-600">{error}</div>
             ) : (
               <>
+                <div className="space-y-4">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Menu Pertanyaan
+                  </span>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {categories.map((category) => {
+                      const isExpanded = expandedCategoryKey === category.key;
+                      return (
+                        <div
+                          key={category.key}
+                          className="flex flex-col rounded-2xl border border-slate-200 shadow-sm"
+                        >
+                          <button
+                            className="flex w-full items-center justify-between gap-2 rounded-2xl bg-white px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                            onClick={() =>
+                              setExpandedCategoryKey((prev) =>
+                                prev === category.key ? null : category.key
+                              )
+                            }
+                            aria-expanded={isExpanded}
+                          >
+                            <span className="uppercase tracking-wide text-xs text-slate-500">
+                              {category.title}
+                            </span>
+                            <ChevronDown
+                              className={`h-4 w-4 transition-transform ${
+                                isExpanded ? "rotate-180" : "rotate-0"
+                              }`}
+                            />
+                          </button>
+                          {isExpanded && (
+                            <div className="border-t border-slate-200 bg-slate-50 px-4 py-3">
+                              <div className="space-y-2">
+                                {category.question.map((qa) => {
+                                  const questionId = `${category.key}-${qa.q}`;
+                                  const isActive = selectedQuestionId === questionId;
+                                  return (
+                                    <button
+                                      key={questionId}
+                                      onClick={() => {
+                                        setSelectedQuestionId(questionId);
+                                        setQuestion(qa.q);
+                                        setAnswer(formatAnswerText(qa.a));
+                                      }}
+                                      className={`w-full rounded-xl px-4 py-3 text-left text-sm transition ${
+                                        isActive
+                                          ? "bg-sky-600 font-medium text-white shadow"
+                                          : "bg-white text-slate-700 hover:bg-slate-100"
+                                      }`}
+                                    >
+                                      {qa.q}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
                 {/* Pertanyaan Pengguna */}
-                <div className="flex flex-col gap-3">
+                    {question && (
+                                      <div className="flex flex-col gap-3">
                   <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                     Pertanyaan Anda
                   </span>
@@ -164,7 +267,7 @@ export default function AdministrasiChatPage() {
                     </div>
                   </div>
                 </div>
-
+                    )}
                 {/* Jawaban Asisten */}
                 <div aria-live="polite" className="flex flex-col gap-3">
                   <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -179,7 +282,10 @@ export default function AdministrasiChatPage() {
                       className="h-11 w-11 rounded-full border border-sky-100 bg-sky-50 object-cover"
                     />
                     <div className="max-w-[80%] rounded-2xl rounded-bl-none bg-white px-4 py-3 text-sm leading-relaxed text-slate-700 shadow-lg ring-1 ring-sky-100 typing-cursor">
-                      <p>{typedText}</p>
+                      <p className="whitespace-pre-line">
+                        {typedText ||
+                          "Silahkan pilih pertanyaan yang anda inginkan pada daftar di atas. Saya siap membantu anda"}
+                      </p>
                     </div>
                   </div>
                 </div>
