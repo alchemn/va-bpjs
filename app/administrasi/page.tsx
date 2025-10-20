@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-// import { speakTTS } from "@/lib/speak";
 import {
   ArrowLeft,
   CircleUser,
@@ -24,10 +23,31 @@ interface CategoryData {
 type AdministrasiData = Record<string, CategoryData>;
 
 const sanitizeAnswerItem = (item: string) => item.replace(/^\d+\.\s*/, "").trim();
-const formatAnswerText = (items: string[]) =>
-  items
-    .map((item, idx) => `${idx + 1}. ${sanitizeAnswerItem(item)}`)
-    .join("\n");
+const formatAnswerText = (items: string[]) => {
+  const visibleItems = items.filter((i) => i.trim() !== "");
+  return items
+    .map((item) => {
+      const clean = sanitizeAnswerItem(item);
+      if (!clean) return "";
+
+      const isLast = item === visibleItems[visibleItems.length - 1];
+
+      // kalau di teks ada kata "Klik Link", ganti jadi link HTML
+      if (clean.includes("Klik Link")) {
+        return clean.replace(
+          "Klik Link ini",
+          '<a href="https://meet.google.com/wvw-spoe-iij?pli=1" target="_blank" class="text-sky-600 underline font-semibold">Klik Link ini</a>'
+        );
+      }
+
+      // baris terakhir tanpa nomor
+      return isLast ? clean : `${visibleItems.indexOf(item) + 1}. ${clean}`;
+    })
+    .join("<br>");
+};
+
+
+
 
 export default function AdministrasiChatPage() {
   const [question, setQuestion] = useState<string | null>(null);
@@ -36,9 +56,8 @@ export default function AdministrasiChatPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<Array<{ key: string } & CategoryData>>([]);
-  const [expandedCategoryKey, setExpandedCategoryKey] = useState<string | null>(null);
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
-
 
   useEffect(() => {
     const fetchData = async () => {
@@ -57,7 +76,10 @@ export default function AdministrasiChatPage() {
         }
 
         setCategories(parsedCategories);
-        setExpandedCategoryKey(parsedCategories[0]?.key ?? null);
+        // semua kategori awalnya tertutup
+        const initialState: Record<string, boolean> = {};
+        parsedCategories.forEach((c) => (initialState[c.key] = false));
+        setExpandedCategories(initialState);
       } catch (err: unknown) {
         setError((err as Error).message || "Terjadi kesalahan.");
       } finally {
@@ -68,89 +90,36 @@ export default function AdministrasiChatPage() {
     fetchData();
   }, []);
 
-  //Typing Effect Mas Bro
-useEffect(() => {
-  if (!answer) {
-    setTypedText("");
-    return;
-  }
+  // efek mengetik
+  useEffect(() => {
+    if (!answer) {
+      setTypedText("");
+      return;
+    }
 
-  let isCancelled = false;
-  let typingTimer: NodeJS.Timeout | null = null;
+    let isCancelled = false;
+    let typingTimer: NodeJS.Timeout | null = null;
 
-  const startTyping = () => {
-    setTypedText("");
-    let index = 0;
-    typingTimer = setInterval(() => {
-      if (isCancelled || index >= answer.length) {
-        if (typingTimer) clearInterval(typingTimer);
-        return;
-      }
-      setTypedText((prev) => prev + answer.charAt(index));
-      index++;
-    }, 30);
-  };
+    const startTyping = () => {
+      setTypedText("");
+      let index = 0;
+      typingTimer = setInterval(() => {
+        if (isCancelled || index >= answer.length) {
+          if (typingTimer) clearInterval(typingTimer);
+          return;
+        }
+        setTypedText((prev) => prev + answer.charAt(index));
+        index++;
+      }, 30);
+    };
 
-  startTyping();
+    startTyping();
 
-  return () => {
-    isCancelled = true;
-    if (typingTimer) clearInterval(typingTimer);
-  };
-}, [answer]);
-
-  // Efek mengetik & suara (TTS)
-  // useEffect(() => {
-  //   if (!answer) {
-  //     setTypedText("");
-  //     return;
-  //   }
-
-  //   let isCancelled = false;
-  //   let typingTimer: NodeJS.Timeout | null = null;
-
-  //   const startTyping = () => {
-  //     setTypedText("");
-  //     let index = 0;
-  //     typingTimer = setInterval(() => {
-  //       if (isCancelled || index >= answer.length) {
-  //         if (typingTimer) clearInterval(typingTimer);
-  //         return;
-  //       }
-  //       setTypedText((prev) => prev + answer.charAt(index));
-  //       index++;
-  //     }, 30);
-  //   };
-
-  //   const playAndType = async () => {
-  //     if (audioRef.current) {
-  //       audioRef.current.pause();
-  //       audioRef.current.currentTime = 0;
-  //     }
-  //     try {
-  //       const newAudio = await speakTTS(answer);
-  //       audioRef.current = newAudio || null;
-  //       if (!isCancelled) {
-  //         startTyping();
-  //         audioRef.current?.play().catch(console.warn);
-  //       }
-  //     } catch (err) {
-  //       console.error("TTS Gagal:", err);
-  //       if (!isCancelled) startTyping(); // Jika TTS gagal, tetap tampilkan teks
-  //     }
-  //   };
-
-  //   playAndType();
-
-  //   return () => {
-  //     isCancelled = true;
-  //     if (typingTimer) clearInterval(typingTimer);
-  //     if (audioRef.current) {
-  //       audioRef.current.pause();
-  //       audioRef.current.src = "";
-  //     }
-  //   };
-  // }, [answer]);
+    return () => {
+      isCancelled = true;
+      if (typingTimer) clearInterval(typingTimer);
+    };
+  }, [answer]);
 
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-sky-50 via-white to-white px-4 py-8">
@@ -190,84 +159,91 @@ useEffect(() => {
               <div className="text-red-600">{error}</div>
             ) : (
               <>
+                {/* Daftar Kategori */}
                 <div className="space-y-4">
                   <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                     Menu Pertanyaan
                   </span>
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {categories.map((category) => {
-                      const isExpanded = expandedCategoryKey === category.key;
-                      return (
-                        <div
-                          key={category.key}
-                          className="flex flex-col rounded-2xl border border-slate-200 shadow-sm"
-                        >
-                          <button
-                            className="flex w-full items-center justify-between gap-2 rounded-2xl bg-white px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                            onClick={() =>
-                              setExpandedCategoryKey((prev) =>
-                                prev === category.key ? null : category.key
-                              )
-                            }
-                            aria-expanded={isExpanded}
-                          >
-                            <span className="uppercase tracking-wide text-xs text-slate-500">
-                              {category.title}
-                            </span>
-                            <ChevronDown
-                              className={`h-4 w-4 transition-transform ${
-                                isExpanded ? "rotate-180" : "rotate-0"
-                              }`}
-                            />
-                          </button>
-                          {isExpanded && (
-                            <div className="border-t border-slate-200 bg-slate-50 px-4 py-3">
-                              <div className="space-y-2">
-                                {category.question.map((qa) => {
-                                  const questionId = `${category.key}-${qa.q}`;
-                                  const isActive = selectedQuestionId === questionId;
-                                  return (
-                                    <button
-                                      key={questionId}
-                                      onClick={() => {
-                                        setSelectedQuestionId(questionId);
-                                        setQuestion(qa.q);
-                                        setAnswer(formatAnswerText(qa.a));
-                                      }}
-                                      className={`w-full rounded-xl px-4 py-3 text-left text-sm transition ${
-                                        isActive
-                                          ? "bg-sky-600 font-medium text-white shadow"
-                                          : "bg-white text-slate-700 hover:bg-slate-100"
-                                      }`}
-                                    >
-                                      {qa.q}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
+                 <div className="columns-1 md:columns-2 gap-4 space-y-4">
+  {categories.map((category) => {
+    const isExpanded = expandedCategories[category.key] ?? false;
+
+    return (
+      <div
+        key={category.key}
+        className="break-inside-avoid rounded-2xl border border-slate-200 shadow-sm flex flex-col mb-4"
+      >
+        <button
+          className="flex w-full items-center justify-between gap-2 rounded-2xl bg-white px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          onClick={() =>
+            setExpandedCategories((prev) => ({
+              ...prev,
+              [category.key]: !prev[category.key],
+            }))
+          }
+          aria-expanded={isExpanded}
+        >
+          <span className="uppercase tracking-wide text-xs text-slate-500">
+            {category.title}
+          </span>
+          <ChevronDown
+            className={`h-4 w-4 transition-transform ${
+              isExpanded ? "rotate-180" : "rotate-0"
+            }`}
+          />
+        </button>
+
+        {isExpanded && (
+          <div className="border-t border-slate-200 bg-slate-50 px-4 py-3">
+            <div className="space-y-2">
+              {category.question.map((qa) => {
+                const questionId = `${category.key}-${qa.q}`;
+                const isActive = selectedQuestionId === questionId;
+                return (
+                  <button
+                    key={questionId}
+                    onClick={() => {
+                      setSelectedQuestionId(questionId);
+                      setQuestion(qa.q);
+                      setAnswer(formatAnswerText(qa.a));
+                    }}
+                    className={`w-full rounded-xl px-4 py-3 text-left text-sm transition ${
+                      isActive
+                        ? "bg-sky-600 font-medium text-white shadow"
+                        : "bg-white text-slate-700 hover:bg-slate-100"
+                    }`}
+                  >
+                    {qa.q}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  })}
+</div>
+
                 </div>
+
                 {/* Pertanyaan Pengguna */}
-                    {question && (
-                                      <div className="flex flex-col gap-3">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    Pertanyaan Anda
-                  </span>
-                  <div className="flex items-start justify-end gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-sky-100 text-sky-700">
-                      <CircleUser className="h-5 w-5" />
-                    </div>
-                    <div className="max-w-[75%] rounded-2xl rounded-br-none bg-sky-600 px-4 py-3 text-sm font-medium text-white shadow-lg">
-                      <p>{question}</p>
+                {question && (
+                  <div className="flex flex-col gap-3">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                      Pertanyaan Anda
+                    </span>
+                    <div className="flex items-start justify-end gap-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-sky-100 text-sky-700">
+                        <CircleUser className="h-5 w-5" />
+                      </div>
+                      <div className="max-w-[75%] rounded-2xl rounded-br-none bg-sky-600 px-4 py-3 text-sm font-medium text-white shadow-lg">
+                        <p>{question}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-                    )}
+                )}
+
                 {/* Jawaban Asisten */}
                 <div aria-live="polite" className="flex flex-col gap-3">
                   <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -282,10 +258,15 @@ useEffect(() => {
                       className="h-11 w-11 rounded-full border border-sky-100 bg-sky-50 object-cover"
                     />
                     <div className="max-w-[80%] rounded-2xl rounded-bl-none bg-white px-4 py-3 text-sm leading-relaxed text-slate-700 shadow-lg ring-1 ring-sky-100 typing-cursor">
-                      <p className="whitespace-pre-line">
-                        {typedText ||
-                          "Silahkan pilih pertanyaan yang anda inginkan pada daftar di atas. Saya siap membantu anda"}
-                      </p>
+                      <p
+  className="whitespace-pre-line"
+  dangerouslySetInnerHTML={{
+    __html:
+      typedText ||
+      "Silahkan pilih pertanyaan yang anda inginkan pada daftar di atas.",
+  }}
+/>
+
                     </div>
                   </div>
                 </div>
