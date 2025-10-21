@@ -161,10 +161,10 @@ export default function AdministrasiChatPage() {
                       return (
                         <div
                           key={category.key}
-                          className="break-inside-avoid rounded-2xl border border-slate-200 shadow-sm flex flex-col mb-4"
+                          className="break-inside-avoid rounded-2xl border border-green-200 shadow-sm flex flex-col mb-4"
                         >
                           <button
-                            className="flex w-full items-center justify-between gap-2 rounded-2xl bg-white px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                            className="flex w-full items-center justify-between gap-2 rounded-2xl bg-green-600 px-4 py-3 text-left text-sm text-black font-semibold transition hover:cursor-pointer hover:bg-green-400"
                             onClick={() =>
                               setExpandedCategories((prev) => {
                                 const allClosed: Record<string, boolean> = {};
@@ -176,7 +176,7 @@ export default function AdministrasiChatPage() {
                             }
                             aria-expanded={isExpanded}
                           >
-                            <span className="uppercase tracking-wide text-xs text-slate-500">
+                            <span className="uppercase tracking-wide text-xs text-black">
                               {category.title}
                             </span>
                             <ChevronDown
