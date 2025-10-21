@@ -22,32 +22,21 @@ interface CategoryData {
 }
 type AdministrasiData = Record<string, CategoryData>;
 
-const sanitizeAnswerItem = (item: string) => item.replace(/^\d+\.\s*/, "").trim();
+// Pertahankan teks asli dari JSON; hanya ubah frasa yang perlu jadi tautan
 const formatAnswerText = (items: string[]) => {
-  const visibleItems = items.filter((i) => i.trim() !== "");
   return items
     .map((item) => {
-      const clean = sanitizeAnswerItem(item);
-      if (!clean) return "";
-
-      const isLast = item === visibleItems[visibleItems.length - 1];
-
-      // kalau di teks ada kata "Klik Link", ganti jadi link HTML
-      if (clean.includes("Klik Link")) {
-        return clean.replace(
+      if (!item) return ""; // Kembalikan string kosong jika item null atau undefined
+      if (item.includes("Klik Link")) {
+        return item.replace(
           "Klik Link ini",
           '<a href="https://meet.google.com/wvw-spoe-iij?pli=1" target="_blank" class="text-sky-600 underline font-semibold">Klik Link ini</a>'
         );
       }
-
-      // baris terakhir tanpa nomor
-      return isLast ? clean : `${visibleItems.indexOf(item) + 1}. ${clean}`;
+      return item;
     })
-    .join("<br>");
+    .join("<br />");
 };
-
-
-
 
 export default function AdministrasiChatPage() {
   const [question, setQuestion] = useState<string | null>(null);
@@ -90,34 +79,35 @@ export default function AdministrasiChatPage() {
     fetchData();
   }, []);
 
-  // efek mengetik
+  // Efek mengetik untuk menampilkan teks secara bertahap
   useEffect(() => {
     if (!answer) {
       setTypedText("");
       return;
     }
 
+    setTypedText(""); // Reset typed text
+    let charIndex = 0;
     let isCancelled = false;
-    let typingTimer: NodeJS.Timeout | null = null;
 
-    const startTyping = () => {
-      setTypedText("");
-      let index = 0;
-      typingTimer = setInterval(() => {
-        if (isCancelled || index >= answer.length) {
-          if (typingTimer) clearInterval(typingTimer);
-          return;
-        }
-        setTypedText((prev) => prev + answer.charAt(index));
-        index++;
-      }, 30);
+    const typeCharacter = () => {
+      if (isCancelled || charIndex > answer.length) {
+        return;
+      }
+
+      // Update typedText with a substring of the full answer
+      setTypedText(answer.substring(0, charIndex));
+      charIndex++;
+
+      if (charIndex <= answer.length) {
+        setTimeout(typeCharacter, 10); // Kecepatan mengetik
+      }
     };
 
-    startTyping();
+    typeCharacter();
 
     return () => {
       isCancelled = true;
-      if (typingTimer) clearInterval(typingTimer);
     };
   }, [answer]);
 
@@ -164,67 +154,69 @@ export default function AdministrasiChatPage() {
                   <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                     Menu Pertanyaan
                   </span>
-                 <div className="columns-1 md:columns-2 gap-4 space-y-4">
-  {categories.map((category) => {
-    const isExpanded = expandedCategories[category.key] ?? false;
+                  <div className="columns-1 md:columns-2 gap-4 space-y-4">
+                    {categories.map((category) => {
+                      const isExpanded = expandedCategories[category.key] ?? false;
 
-    return (
-      <div
-        key={category.key}
-        className="break-inside-avoid rounded-2xl border border-slate-200 shadow-sm flex flex-col mb-4"
-      >
-        <button
-          className="flex w-full items-center justify-between gap-2 rounded-2xl bg-white px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-          onClick={() =>
-            setExpandedCategories((prev) => ({
-              ...prev,
-              [category.key]: !prev[category.key],
-            }))
-          }
-          aria-expanded={isExpanded}
-        >
-          <span className="uppercase tracking-wide text-xs text-slate-500">
-            {category.title}
-          </span>
-          <ChevronDown
-            className={`h-4 w-4 transition-transform ${
-              isExpanded ? "rotate-180" : "rotate-0"
-            }`}
-          />
-        </button>
+                      return (
+                        <div
+                          key={category.key}
+                          className="break-inside-avoid rounded-2xl border border-slate-200 shadow-sm flex flex-col mb-4"
+                        >
+                          <button
+                            className="flex w-full items-center justify-between gap-2 rounded-2xl bg-white px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                            onClick={() =>
+                              setExpandedCategories((prev) => {
+                                const allClosed: Record<string, boolean> = {};
+                                Object.keys(prev).forEach((k) => (allClosed[k] = false));
+                                if (prev[category.key]) return allClosed;
+                                allClosed[category.key] = true;
+                                return allClosed;
+                              })
+                            }
+                            aria-expanded={isExpanded}
+                          >
+                            <span className="uppercase tracking-wide text-xs text-slate-500">
+                              {category.title}
+                            </span>
+                            <ChevronDown
+                              className={`h-4 w-4 transition-transform ${
+                                isExpanded ? "rotate-180" : "rotate-0"
+                              }`}
+                            />
+                          </button>
 
-        {isExpanded && (
-          <div className="border-t border-slate-200 bg-slate-50 px-4 py-3">
-            <div className="space-y-2">
-              {category.question.map((qa) => {
-                const questionId = `${category.key}-${qa.q}`;
-                const isActive = selectedQuestionId === questionId;
-                return (
-                  <button
-                    key={questionId}
-                    onClick={() => {
-                      setSelectedQuestionId(questionId);
-                      setQuestion(qa.q);
-                      setAnswer(formatAnswerText(qa.a));
-                    }}
-                    className={`w-full rounded-xl px-4 py-3 text-left text-sm transition ${
-                      isActive
-                        ? "bg-sky-600 font-medium text-white shadow"
-                        : "bg-white text-slate-700 hover:bg-slate-100"
-                    }`}
-                  >
-                    {qa.q}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  })}
-</div>
-
+                          {isExpanded && (
+                            <div className="border-t border-slate-200 bg-slate-50 px-4 py-3">
+                              <div className="space-y-2">
+                                {category.question.map((qa) => {
+                                  const questionId = `${category.key}-${qa.q}`;
+                                  const isActive = selectedQuestionId === questionId;
+                                  return (
+                                    <button
+                                      key={questionId}
+                                      onClick={() => {
+                                        setSelectedQuestionId(questionId);
+                                        setQuestion(qa.q);
+                                        setAnswer(formatAnswerText(qa.a));
+                                      }}
+                                      className={`w-full rounded-xl px-4 py-3 text-left text-sm transition ${
+                                        isActive
+                                          ? "bg-sky-600 font-medium text-white shadow"
+                                          : "bg-white text-slate-700 hover:bg-slate-100"
+                                      }`}
+                                    >
+                                      {qa.q}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {/* Pertanyaan Pengguna */}
@@ -258,15 +250,14 @@ export default function AdministrasiChatPage() {
                       className="h-11 w-11 rounded-full border border-sky-100 bg-sky-50 object-cover"
                     />
                     <div className="max-w-[80%] rounded-2xl rounded-bl-none bg-white px-4 py-3 text-sm leading-relaxed text-slate-700 shadow-lg ring-1 ring-sky-100 typing-cursor">
-                      <p
-  className="whitespace-pre-line"
-  dangerouslySetInnerHTML={{
-    __html:
-      typedText ||
-      "Silahkan pilih pertanyaan yang anda inginkan pada daftar di atas.",
-  }}
-/>
-
+                      <div
+                        className="whitespace-pre-line"
+                        dangerouslySetInnerHTML={{
+                          __html:
+                            typedText ||
+                            "Silahkan pilih pertanyaan yang anda inginkan pada daftar di atas.",
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
@@ -278,3 +269,6 @@ export default function AdministrasiChatPage() {
     </div>
   );
 }
+
+
+
