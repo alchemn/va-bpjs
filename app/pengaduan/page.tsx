@@ -138,6 +138,9 @@ export default function PengaduanChatPage() {
         currentAudio.pause();
         currentAudio.src = "";
       }
+      if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+  }
     };
   }, [answer]);
 

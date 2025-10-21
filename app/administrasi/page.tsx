@@ -122,11 +122,8 @@ export default function AdministrasiChatPage() {
               Virtual Assistant BPJS
             </p>
             <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">
-              Panduan Administrasi
+              Panduan Layanan Administrasi
             </h1>
-            <p className="text-sm text-slate-600 md:text-base">
-              Cari tahu cara kelola data dan pembayaran iuran dengan lebih terstruktur.
-            </p>
           </div>
           <Link
             href="/"
