@@ -1,13 +1,33 @@
-"use client"
-import {useState} from "react";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { PhoneCall,Phone, MessageCircle } from "lucide-react";
+import { PhoneCall, Phone, MessageCircle } from "lucide-react";
 import { Button } from "../ui/button";
 
 export default function ActionButtons() {
-  const [open,setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Tutup dropdown saat klik di luar elemen
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
-    <div className="flex items-center gap-2">
+    <div className="relative flex items-center gap-2">
       <Button
         asChild
         variant="secondary"
@@ -15,21 +35,20 @@ export default function ActionButtons() {
       >
         <Link href="#categories">Jelajahi Layanan</Link>
       </Button>
-      <div className="relative">
-      <Button
-        asChild
-        onClick={() => setOpen(!open)}
-        className="rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-700"
-      >
-        <Link href="#contact" className="inline-flex items-center gap-2">
-          <PhoneCall className="h-4 w-4" />
+
+      <div className="relative" ref={dropdownRef}>
+        <Button
+          onClick={() => setOpen(!open)}
+          className="rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-700"
+        >
+          <PhoneCall className="h-4 w-4 mr-2" />
           Butuh Bantuan?
-        </Link>
-      </Button>
-       {open && (
+        </Button>
+
+        {open && (
           <div className="absolute right-0 mt-2 w-44 rounded-xl border border-sky-100 bg-white shadow-lg animate-in fade-in slide-in-from-top-1">
             <Link
-              href="https://wa.me/62811816565"
+              href="https://wa.me/628118165165"
               target="_blank"
               className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-sky-50 text-sky-700"
             >
@@ -37,7 +56,7 @@ export default function ActionButtons() {
               WhatsApp
             </Link>
             <a
-              href="tel:+165"
+              href="tel:165"
               className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-sky-50 text-sky-700"
             >
               <Phone className="h-4 w-4" />

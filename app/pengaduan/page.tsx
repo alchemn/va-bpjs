@@ -152,11 +152,8 @@ export default function PengaduanChatPage() {
               Virtual Assistant BPJS
             </p>
             <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">
-              Pendampingan Pengaduan
+               Pengaduan
             </h1>
-            <p className="text-sm text-slate-600 md:text-base">
-              Kami bantu arahkan langkah pengaduan Anda agar tersampaikan dengan baik.
-            </p>
           </div>
           <Link
             href="/"

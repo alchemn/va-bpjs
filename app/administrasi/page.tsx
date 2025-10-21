@@ -202,7 +202,7 @@ export default function AdministrasiChatPage() {
                                       }}
                                       className={`w-full rounded-xl px-4 py-3 text-left text-sm transition ${
                                         isActive
-                                          ? "bg-sky-600 font-medium text-white shadow"
+                                          ? "bg-green-600 font-medium text-black shadow"
                                           : "bg-white text-slate-700 hover:bg-slate-100"
                                       }`}
                                     >

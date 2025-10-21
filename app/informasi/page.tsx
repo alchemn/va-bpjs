@@ -338,13 +338,8 @@ export default function InformasiPage() {
               Virtual Assistant BPJS
             </p>
             <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">
-              Pusat Informasi BPJS
+              Pusat Informasi BPJS Kesehatan
             </h1>
-            <p className="text-sm text-slate-600 md:text-base">
-              Ajukan pertanyaan Anda. Asisten virtual akan membaca data{" "}
-              <code>context.json</code> untuk menemukan jawaban yang paling
-              relevan.
-            </p>
           </div>
           <Link
             href="/"
@@ -377,11 +372,6 @@ export default function InformasiPage() {
                 <div className="space-y-2">
                   <p className="text-lg font-semibold text-slate-900">
                     Mulai percakapan
-                  </p>
-                  <p className="text-sm leading-relaxed">
-                    Ketikkan pertanyaan seputar layanan BPJS atau gunakan mikrofon
-                    untuk berbicara. Sistem akan mencocokkan pertanyaan Anda
-                    dengan informasi pada <code>context.json</code>.
                   </p>
                 </div>
               </div>
