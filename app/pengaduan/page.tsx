@@ -83,24 +83,6 @@ export default function PengaduanChatPage() {
       }, 30);
     };
 
-    // const playAndType = async () => {
-    //   if (audioRef.current) {
-    //     audioRef.current.pause();
-    //     audioRef.current.currentTime = 0;
-    //   }
-    //   try {
-    //     const newAudio = await speakTTS(answer);
-    //     audioRef.current = newAudio || null;
-    //     if (!isCancelled) {
-    //       startTyping();
-    //       audioRef.current?.play().catch(console.warn);
-    //     }
-    //   } catch (err) {
-    //     console.error("TTS Gagal:", err);
-    //     if (!isCancelled) startTyping(); // Jika TTS gagal, tetap tampilkan teks
-    //   }
-    // };
-
     const playAndType = async () => {
       try {
         if('speechSynthesis' in window){
