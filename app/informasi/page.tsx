@@ -3,7 +3,6 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-// import { speakTTS } from "@/lib/speak";
 import {
   ArrowLeft,
   CircleUser,
@@ -329,11 +328,11 @@ export default function InformasiPage() {
   const disableSubmit = loading || isRecording;
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-b from-sky-50 via-white to-white px-4 py-8">
+    <div className="relative min-h-screen bg-gradient-to-b from-green-50 via-white to-white px-4 py-8">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-        <header className="flex flex-col gap-4 rounded-3xl bg-white p-6 shadow-lg ring-1 ring-sky-100 md:flex-row md:items-center md:justify-between">
+        <header className="flex flex-col gap-4 rounded-3xl bg-white p-6 shadow-lg ring-1 ring-green-100 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
-            <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-sky-500">
+            <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-green-500">
               <MessageCircle className="h-4 w-4" />
               Virtual Assistant BPJS
             </p>
@@ -350,7 +349,7 @@ export default function InformasiPage() {
           </Link>
         </header>
 
-        <section className="rounded-3xl bg-white p-6 shadow-lg ring-1 ring-sky-100">
+        <section className="rounded-3xl bg-white p-6 shadow-lg ring-1 ring-green-100">
           <div className="space-y-6">
             {userQuestion ? (
               <div className="flex flex-col gap-3">
@@ -358,17 +357,17 @@ export default function InformasiPage() {
                   Pertanyaan Anda
                 </span>
                 <div className="flex items-start justify-end gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-sky-100 text-sky-700">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-green-100 text-green-700">
                     <CircleUser className="h-5 w-5" />
                   </div>
-                  <div className="max-w-[75%] rounded-2xl rounded-br-none bg-sky-600 px-4 py-3 text-sm font-medium text-white shadow-lg">
+                  <div className="max-w-[75%] rounded-2xl rounded-br-none bg-green-600 px-4 py-3 text-sm font-medium text-white shadow-lg">
                     <p>{userQuestion}</p>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-6 py-8 text-center text-slate-600">
-                <MessageSquareQuote className="h-12 w-12 text-sky-400" />
+                <MessageSquareQuote className="h-12 w-12 text-green-400" />
                 <div className="space-y-2">
                   <p className="text-lg font-semibold text-slate-900">
                     Mulai percakapan
@@ -390,7 +389,7 @@ export default function InformasiPage() {
                       alt="Virtual Assistant"
                       width={44}
                       height={44}
-                      className="h-11 w-11 rounded-full border border-sky-100 bg-sky-50 object-cover"
+                      className="h-11 w-11 rounded-full border border-green-100 bg-green-50 object-cover"
                     />
                     <div className="space-y-3">
                       <div className="h-4 w-24 animate-pulse rounded-full bg-slate-200" />
@@ -420,12 +419,12 @@ export default function InformasiPage() {
                       alt="Virtual Assistant"
                       width={44}
                       height={44}
-                      className="h-11 w-11 rounded-full border border-sky-100 bg-sky-50 object-cover"
+                      className="h-11 w-11 rounded-full border border-green-100 bg-green-50 object-cover"
                     />
-                    <div className="flex items-center gap-2 rounded-2xl bg-white px-4 py-2 shadow ring-1 ring-sky-100">
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-sky-400" />
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-sky-400 delay-150" />
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-sky-400 delay-300" />
+                    <div className="flex items-center gap-2 rounded-2xl bg-white px-4 py-2 shadow ring-1 ring-green-100">
+                      <span className="h-2 w-2 animate-bounce rounded-full bg-green-400" />
+                      <span className="h-2 w-2 animate-bounce rounded-full bg-green-400 delay-150" />
+                      <span className="h-2 w-2 animate-bounce rounded-full bg-green-400 delay-300" />
                     </div>
                   </div>
                 ) : answer ? (
@@ -435,9 +434,9 @@ export default function InformasiPage() {
                       alt="Virtual Assistant"
                       width={44}
                       height={44}
-                      className="h-11 w-11 rounded-full border border-sky-100 bg-sky-50 object-cover"
+                      className="h-11 w-11 rounded-full border border-green-100 bg-green-50 object-cover"
                     />
-                    <div className="max-w-[80%] rounded-2xl rounded-bl-none bg-white px-4 py-3 text-sm leading-relaxed text-slate-700 shadow-lg ring-1 ring-sky-100 typing-cursor">
+                    <div className="max-w-[80%] rounded-2xl rounded-bl-none bg-white px-4 py-3 text-sm leading-relaxed text-slate-700 shadow-lg ring-1 ring-green-100 typing-cursor">
                       <p>{typedAnswer}</p>
                     </div>
                   </div>
@@ -451,7 +450,7 @@ export default function InformasiPage() {
                 )}
 
                 {!loading && !error && answer && (
-                  <div className="rounded-2xl border border-dashed border-sky-200 bg-sky-50/70 px-4 py-3 text-xs text-slate-500">
+                  <div className="rounded-2xl border border-dashed border-green-200 bg-green-50/70 px-4 py-3 text-xs text-slate-500">
                     {matchedQuestion && (
                       <p>
                         Referensi terdekat:{" "}
@@ -493,7 +492,7 @@ export default function InformasiPage() {
                     if (error) setError(null);
                   }}
                   placeholder="Contoh: Bagaimana cara melakukan pendaftaran baru?"
-                  className="w-full flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100 disabled:opacity-60"
+                  className="w-full flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm focus:border-green-400 focus:outline-none focus:ring-2 focus:ring-green-100 disabled:opacity-60"
                   disabled={disableSubmit}
                 />
                 <button
@@ -541,7 +540,7 @@ export default function InformasiPage() {
               <button
                 type="submit"
                 disabled={disableSubmit || inputValue.trim().length === 0}
-                className="inline-flex items-center justify-center gap-2 self-end rounded-full bg-sky-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-sky-300"
+                className="inline-flex items-center justify-center gap-2 self-end rounded-full bg-green-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-green-300"
               >
                 {loading ? (
                   <>

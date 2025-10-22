@@ -34,10 +34,10 @@ export default function CategoriesSection() {
   return (
     <section id="categories" className="space-y-8">
       <div className="flex flex-col gap-3 text-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">
+        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-green-500">
           Kategori layanan
         </p>
-        <h2 className="text-3xl font-bold text-slate-900">Pilih layanan sesuai kebutuhan Anda</h2>
+        <h2 className="text-3xl font-bold text-slate-900">Pilih layanan sesuai kebutuhan anda</h2>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
@@ -52,7 +52,7 @@ export default function CategoriesSection() {
             </div>
             <h3 className="text-xl font-semibold text-slate-900">{title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-slate-600">{description}</p>
-            <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-sky-600">
+            <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-green-600">
               Jelajahi sekarang
               <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
             </span>

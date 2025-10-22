@@ -14,7 +14,7 @@ export default function Navigation() {
         <Link
           key={item.href}
           href={item.href}
-          className="rounded-full px-3 py-2 transition hover:bg-sky-50 hover:text-sky-700"
+          className="rounded-full px-3 py-2 transition hover:bg-sky-50 hover:text-green-700"
         >
           {item.label}
         </Link>

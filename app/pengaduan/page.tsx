@@ -150,7 +150,7 @@ export default function PengaduanChatPage() {
         {/* Header */}
         <header className="flex flex-col gap-4 rounded-3xl bg-white p-6 shadow-lg ring-1 ring-sky-100 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
-            <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-sky-500">
+            <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-green-500">
               <MessageCircle className="h-4 w-4" />
               Virtual Assistant BPJS
             </p>
@@ -185,10 +185,10 @@ export default function PengaduanChatPage() {
                     Pertanyaan Anda
                   </span>
                   <div className="flex items-start justify-end gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-sky-100 text-sky-700">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-sky-100 text-green-700">
                       <CircleUser className="h-5 w-5" />
                     </div>
-                    <div className="max-w-[75%] rounded-2xl rounded-br-none bg-sky-600 px-4 py-3 text-sm font-medium text-white shadow-lg">
+                    <div className="max-w-[75%] rounded-2xl rounded-br-none bg-green-600 px-4 py-3 text-sm font-medium text-white shadow-lg">
                       <p>{question}</p>
                     </div>
                   </div>
