@@ -31,6 +31,14 @@ export default function PengaduanChatPage() {
   const [error, setError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // TODO: Investigate a bizarre rendering bug.
+  // There appears to be an issue in the build or rendering pipeline where
+  // the string "Terima kasih" sourced from `/context.json` is incorrectly
+  // displayed as "Trima kasih".
+  // As a temporary workaround, the string in `context.json` has been
+  // intentionally set to "Teerima kasih". This forces the renderer to
+  // output the correct "Terima kasih". This is not a permanent solution
+  // and a proper fix for the underlying rendering bug should be investigated.
   useEffect(() => {
     const fetchData = async () => {
       try {
