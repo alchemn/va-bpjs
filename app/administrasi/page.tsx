@@ -1,8 +1,8 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { X } from "lucide-react";
 import {
   ArrowLeft,
   MessageCircle,
@@ -15,6 +15,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 
 interface QAItem {
@@ -26,19 +27,39 @@ interface CategoryData {
   question: QAItem[];
 }
 
+const replacements = [
+  {
+    find: "Klik Link ini",
+    html: `<a href="https://meet.google.com/wvw-spoe-iij?pli=1" target="_blank"
+            class="text-green-600 underline font-semibold">
+            Klik Link ini</a>`,
+  },
+  {
+    find: "Whatsuap",
+    html: `<a href="https://wa.me/628118165165" target="_blank"
+            class="inline-flex items-center gap-1 text-green-600 underline font-semibold">
+            <img src="/image/wa.png" alt="Whatsapp" class="w-4 h-4" /> WhatsApp
+          </a>`,
+  },
+  {
+    find: "telepon",
+    html: `<a href="tel:165" target="_blank" class="inline-flex items-center gap-1 text-green-600 underline font-semibold">
+            <img src="/image/phon.png" alt="Phone" class="w-4 h-4" /> Telepon
+          </a>`
+  }
+];
+
 const formatAnswerText = (items: string[]) =>
   items
     .map((item) => {
       if (!item) return "";
-      if (item.includes("Klik Link")) {
-        return item.replace(
-          "Klik Link ini",
-          '<a href="https://meet.google.com/wvw-spoe-iij?pli=1" target="_blank" class="text-green-600 underline font-semibold">Klik Link ini</a>'
-        );
-      }
+      replacements.forEach(({ find, html }) => {
+        if (item.includes(find)) item = item.replace(find, html);
+      });
       return item;
     })
     .join("<br />");
+
 
 export default function AdministrasiChatPage() {
   const [categories, setCategories] = useState<
@@ -210,11 +231,19 @@ export default function AdministrasiChatPage() {
 
       {/* Popup Dialog */}
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent className="max-w-md rounded-2xl">
+        <DialogContent className="w-full max-w-md md:max-w-2xl lg:max-w-4xl rounded-2xl [&>button:last-child]:hidden">
           <DialogHeader>
             <DialogTitle className="text-green-700">
               Jawaban Virtual Assistant
             </DialogTitle>
+                  <DialogClose asChild>
+  <button
+    className="absolute right-4 top-4 text-red-500 hover:text-red-600 transition-transform duration-200 hover:scale-110"
+    aria-label="Tutup dialog"
+  >
+    <X className="h-5 w-5" />
+  </button>
+</DialogClose>
           </DialogHeader>
 
           <div className="mt-4 text-sm leading-relaxed">
