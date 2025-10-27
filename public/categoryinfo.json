@@ -1,0 +1,35 @@
+{
+    "cek_status" : {
+        "title" : "Cek Status Kepesertaan",
+        "question": [
+            {
+                "q" : "Cek Status Kepesertaan",
+                "a" : [
+                    "Bapak/Ibu untuk kecepatan layanan melalui layanan Tanpa Tatap Muka, kami sarankan Bapak/Ibu akses layanan melalui WA Pandawa BPJS Kesehatan (klik di sini Whatsapp ) dan pilih Menu Informasi setelah bapak/ibu masuk kedalam menu layanan pandawa melalui aplikasi whatshap dan pilih menu Cek Status Kepesertaan. Terima kasih"
+                ]
+            }
+        ]
+    },
+    "cek_status_pay" :  {
+        "title" : "Cek Status Pembayaran",
+        "question" : [
+            {
+                "q" : "Cek Status Pembayaran",
+                "a" : [
+                     "Bapak/Ibu untuk kecepatan layanan melalui layanan Tanpa Tatap Muka, kami sarankan Bapak/Ibu akses layanan melalui WA Pandawa BPJS Kesehatan (klik di sini Whatsapp) dan pilih Menu Informasi setelah bapak/ibu masuk kedalam menu layanan pandawa melalui aplikasi whatshap dan pilih menu Cek Status Pembayaran. Terima kasih"
+                ]
+            }
+        ]
+    },
+    "cek_virtual_account": {
+        "title" : "Cek Virtual Account",
+        "question" : [
+            {
+                "q" : "Cek Virtual Account",
+                "a" : [
+                        "Bapak/Ibu untuk kecepatan layanan melalui layanan Tanpa Tatap Muka, kami sarankan Bapak/Ibu akses layanan melalui WA Pandawa BPJS Kesehatan (klik di sini Whatsapp) dan pilih Menu Informasi setelah bapak/ibu masuk kedalam menu layanan pandawa melalui aplikasi whatshap dan pilih menu Cek Virtual Account. Terima kasih"
+                ]
+            }
+        ]    
+    }
+}

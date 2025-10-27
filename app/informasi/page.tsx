@@ -5,23 +5,26 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   ArrowLeft,
-  CircleUser,
   Loader2,
   MessageCircle,
   MessageSquareQuote,
   Mic,
   Square,
+  X,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
 
+// === Speech Recognition Setup ===
 interface SpeechRecognitionResultEvent {
   results: ArrayLike<ArrayLike<{ transcript: string }>>;
 }
-
-type SpeechRecognitionErrorEventLike = {
-  error?: string;
-  message?: string;
-};
-
+type SpeechRecognitionErrorEventLike = { error?: string; message?: string };
 type SpeechRecognitionLike = {
   lang: string;
   continuous: boolean;
@@ -34,7 +37,6 @@ type SpeechRecognitionLike = {
   onerror: ((event: SpeechRecognitionErrorEventLike) => void) | null;
   onend: (() => void) | null;
 };
-
 type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
 
 declare global {
@@ -50,72 +52,88 @@ const getSpeechRecognitionCtor = (): SpeechRecognitionConstructor | null => {
   return SpeechRecognition ?? webkitSpeechRecognition ?? null;
 };
 
-const mapRecognitionError = (code: string): string => {
-  switch (code) {
-    case "not-allowed":
-    case "service-not-allowed":
-      return "Izin mikrofon ditolak. Mohon izinkan akses mikrofon dan coba lagi.";
-    case "no-speech":
-      return "Tidak terdengar suara. Silakan coba lagi dan pastikan mikrofon Anda aktif.";
-    case "audio-capture":
-      return "Mikrofon tidak terdeteksi. Periksa perangkat audio Anda.";
-    case "network":
-      return "Terjadi masalah jaringan saat memproses suara.";
-    default:
-      return "Perekaman suara gagal. Silakan coba lagi.";
-  }
-};
-
-interface ChatResponse {
-  answer: string;
-  matched?: string;
-  confidence?: number;
+// === Category Types ===
+interface QAItem {
+  q: string;
+  a: string[];
+}
+interface CategoryData {
+  title: string;
+  question: QAItem[];
 }
 
+// === Replace pattern (WhatsApp etc) ===
+const replacements = [
+  {
+    find: "Whatsapp",
+    html: `<a href="https://wa.me/628118165165" target="_blank"
+            class="inline-flex items-center gap-1 text-green-600 underline font-semibold">
+            <img src="/image/wa.png" alt="Whatsapp" class="w-4 h-4" /> WhatsApp
+          </a>`,
+  },
+];
+
+const replacePattern = new RegExp(
+  replacements.map((r) => r.find.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|"),
+  "gi"
+);
+const replaceMap = new Map(replacements.map((r) => [r.find.toLowerCase(), r.html]));
+
+const formatAnswerText = (items: string[]) =>
+  items
+    .map((item) => {
+      if (!item) return "";
+      return item.replace(replacePattern, (match) => replaceMap.get(match.toLowerCase()) || match);
+    })
+    .join("<br />");
+
+// === Main Component ===
 export default function InformasiPage() {
   const [inputValue, setInputValue] = useState("");
   const [userQuestion, setUserQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [typedAnswer, setTypedAnswer] = useState("");
-  const [matchedQuestion, setMatchedQuestion] = useState<string | null>(null);
-  const [confidence, setConfidence] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  const [thinking, setThinking] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [recordingError, setRecordingError] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [supportsSpeechRecognition, setSupportsSpeechRecognition] =
-    useState(false);
-
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [recordingError, setRecordingError] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
 
+  // kategori
+  const [categories, setCategories] = useState<Array<{ key: string } & CategoryData>>([]);
+  const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [typedText, setTypedText] = useState("");
+  const [openDialog, setOpenDialog] = useState(false);
+
+  // kategori
+
   useEffect(() => {
-    setSupportsSpeechRecognition(Boolean(getSpeechRecognitionCtor()));
+    const fetchData = async () => {
+      try {
+        const res = await fetch("/categoryinfo.json");
+        if (!res.ok) throw new Error("Gagal memuat kategori.");
+        const data = await res.json();
+        const parsed = Object.entries(data).map(([key, value]) => ({
+          key,
+          ...(value as CategoryData),
+        }));
+        setCategories(parsed);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchData();
   }, []);
 
   const submitQuestion = async (rawQuestion: string) => {
     const trimmed = rawQuestion.trim();
-    if (!trimmed) {
-      setError("Silakan ketikkan pertanyaan terlebih dahulu.");
-      return;
-    }
-
+    if (!trimmed) return;
     if (loading) return;
 
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-
     setLoading(true);
-    setThinking(false);
-    setError(null);
     setUserQuestion(trimmed);
     setAnswer("");
     setTypedAnswer("");
-    setMatchedQuestion(null);
-    setConfidence(null);
 
     try {
       const res = await fetch("/api/message", {
@@ -123,485 +141,302 @@ export default function InformasiPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: trimmed }),
       });
-
-      const data: ChatResponse & { error?: string } = await res.json();
-      if (!res.ok) {
-        throw new Error(data?.error || "Gagal mendapatkan jawaban dari asisten.");
-      }
-
-      setAnswer(typeof data.answer === "string" ? data.answer : "");
-      setMatchedQuestion(
-        typeof data.matched === "string" && data.matched.length > 0
-          ? data.matched
-          : null
-      );
-      setConfidence(
-        typeof data.confidence === "number" ? data.confidence : null
-      );
+      const data = await res.json();
+      setAnswer(data.answer || "Maaf, belum ada jawaban.");
       setInputValue("");
-      setRecordingError(null);
-    } catch (err) {
-      console.error("Submit question error:", err);
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Terjadi kesalahan saat memproses pertanyaan Anda.";
-      setError(message);
-      setThinking(false);
+    } catch {
+      console.error("Terjadi kesalahan koneksi.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
     await submitQuestion(inputValue);
   };
 
   const startRecording = () => {
     if (isRecording || loading) return;
-
     const Ctor = getSpeechRecognitionCtor();
-    if (!Ctor) {
-      setRecordingError(
-        "Browser Anda belum mendukung konversi suara ke teks. Gunakan Chrome atau Edge versi terbaru."
-      );
-      return;
-    }
-
-    setRecordingError(null);
+    if (!Ctor)
+      return setRecordingError("Browser Anda tidak mendukung speech recognition.");
 
     const recognition = new Ctor();
     recognition.lang = "id-ID";
-    recognition.continuous = false;
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
-    let hasResult = false;
-
-    recognition.onresult = (event) => {
-      const list = Array.from(event.results ?? []);
-      const transcript = list[0]?.[0]?.transcript?.trim() ?? "";
-
-      if (!transcript) {
-        setRecordingError("Audio tidak terbaca. Silakan coba lagi.");
-        return;
-      }
-
-      hasResult = true;
-      setRecordingError(null);
+    recognition.onresult = (e) => {
+      const transcript = e.results?.[0]?.[0]?.transcript || "";
       setInputValue(transcript);
-      void submitQuestion(transcript);
+      submitQuestion(transcript);
     };
 
-    recognition.onerror = (event) => {
-      hasResult = true;
-      const code = event?.error ?? "unknown";
-      setRecordingError(mapRecognitionError(code));
-    };
+    recognition.onend = () => setIsRecording(false);
 
-    recognition.onend = () => {
-      setIsRecording(false);
-      recognitionRef.current = null;
-      if (!hasResult) {
-        setRecordingError((prev) =>
-          prev ?? "Tidak terdengar suara. Silakan coba lagi."
-        );
-      }
-    };
-
-    try {
-      recognitionRef.current = recognition;
-      recognition.start();
-      setIsRecording(true);
-    } catch (err) {
-      console.error("Speech recognition start error:", err);
-      recognitionRef.current = null;
-      setIsRecording(false);
-      setRecordingError("Perekaman suara gagal dimulai.");
-    }
+    recognition.start();
+    recognitionRef.current = recognition;
+    setIsRecording(true);
   };
 
-  const stopRecording = () => {
-    const recognition = recognitionRef.current;
-    if (recognition) {
-      recognition.stop();
-    }
-  };
+  const stopRecording = () => recognitionRef.current?.stop();
 
-  useEffect(() => {
-  if ("speechSynthesis" in window) {
-    const dummy = new SpeechSynthesisUtterance(" ");
-    dummy.lang = "id-ID";
-    window.speechSynthesis.speak(dummy);
-  }
-}, []);
-
+  // efek ngetik & suara VA
   useEffect(() => {
     if (!answer) {
       setTypedAnswer("");
       return;
     }
-    const currentAudio = audioRef.current;
+    const synth = window.speechSynthesis;
     let isCancelled = false;
-    let typingTimer: NodeJS.Timeout | null = null;
-    const thinkingTimer: NodeJS.Timeout | null = null;
+    let i = 0;
 
-    const startTyping = (fullText: string) => {
-      let index = 0;
-      let buffer = "";
-      typingTimer = setInterval(() => {
-        if (isCancelled) {
-          if (typingTimer) clearInterval(typingTimer);
-          return;
-        }
-        if (index >= fullText.length) {
-          if (typingTimer) clearInterval(typingTimer);
-          return;
-        }
-        buffer += fullText.charAt(index);
-        setTypedAnswer(buffer);
-        index += 1;
-      }, 30);
-    };
-    const playAndType = async () => {
-  setThinking(true);
-  try {
-    if ("speechSynthesis" in window) {
-      const synth = window.speechSynthesis;
-      const voices = synth.getVoices();
+    const typingTimer = setInterval(() => {
+      if (isCancelled) return;
+      setTypedAnswer(answer.slice(0, i));
+      i++;
+      if (i > answer.length) clearInterval(typingTimer);
+    }, 25);
 
-      // cari voice Indo, fallback ke English
-      const indoVoice =
-        voices.find((v) => v.lang.startsWith("id")) ||
-        voices.find((v) => v.lang.startsWith("en")) ||
-        null;
-
-      // bagi jadi kalimat biar bisa pause antar jeda
-      const sentences = answer.split(/([.!?])\s+/);
-      let idx = 0;
-
-      synth.cancel(); // hapus speech lama biar gak numpuk
-
-      // Fungsi rekursif untuk ngomong per kalimat
-      const speakNext = () => {
-        if (idx >= sentences.length) return;
-        const part = sentences[idx];
-        if (!part.trim()) {
-          idx++;
-          return speakNext();
+    try {
+      if (synth) {
+        let voices = synth.getVoices();
+        if (voices.length === 0) {
+          window.speechSynthesis.onvoiceschanged = () => {
+            voices = synth.getVoices();
+          };
         }
 
-        const utter = new SpeechSynthesisUtterance(part);
-        utter.lang = indoVoice?.lang || "id-ID";
-        utter.voice = indoVoice;
-        utter.rate = 0.9;
-        utter.pitch = 1.05;
-        utter.volume = 1;
+        const voice =
+          voices.find((v) => v.lang.startsWith("id")) ||
+          voices.find((v) => v.lang.startsWith("en")) ||
+          null;
 
-        utter.onend = () => {
-          idx++;
-          setTimeout(speakNext, 500 + Math.random() * 300); // jeda antar kalimat
+        const sentences = answer.split(/([.!?])\s+/);
+        let idx = 0;
+
+        const speakNext = () => {
+          if (idx >= sentences.length || isCancelled) return;
+          const part = sentences[idx];
+          if (!part.trim()) {
+            idx++;
+            return speakNext();
+          }
+
+          const utter = new SpeechSynthesisUtterance(part);
+          utter.lang = voice?.lang || "id-ID";
+          utter.voice = voice;
+          utter.rate = 0.9;
+          utter.pitch = 1.05;
+          utter.onend = () => {
+            idx++;
+            setTimeout(speakNext, 400);
+          };
+          synth.speak(utter);
         };
 
-        synth.speak(utter);
-      };
-
-      // pastiin voice udah siap
-      if (voices.length === 0) {
-        await new Promise((resolve) => {
-          window.speechSynthesis.onvoiceschanged = resolve;
-        });
+        synth.cancel();
+        speakNext();
       }
-
-      // mulai ngomong
-      setTimeout(() => speakNext(), 400);
-
-      // efek typing mulai agak belakangan
-      setTimeout(() => {
-        if (!isCancelled) {
-          setThinking(false);
-          startTyping(answer);
-        }
-      }, 1200);
-    } else {
-      console.warn("Speech synthesis tidak tersedia di browser ini");
-      setThinking(false);
-      startTyping(answer);
+    } catch (err) {
+      console.error("Speech synthesis error:", err);
     }
-  } catch (error) {
-    console.error("Speech Error", error);
-    if (!isCancelled) {
-      setThinking(false);
-      startTyping(answer);
-    }
-  }
-};
-
-
-    playAndType();
 
     return () => {
       isCancelled = true;
-      setThinking(false);
-      if (typingTimer) clearInterval(typingTimer);
-      if (thinkingTimer) clearTimeout(thinkingTimer);
-      if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.currentTime = 0;
-      }
-      if("speechSynthesis" in window) {
-        window.speechSynthesis.cancel()
-      }
+      synth.cancel();
+      clearInterval(typingTimer);
     };
   }, [answer]);
 
   useEffect(() => {
-    return () => {
-      const recognition = recognitionRef.current;
-      if (recognition) {
-        recognition.onend = null;
-        recognition.onresult = null;
-        recognition.onerror = null;
-        recognition.stop();
-        recognitionRef.current = null;
-      }
-    };
-  }, []);
+    if (!selectedAnswer || !openDialog) return;
+    let i = 0;
+    setTypedText("");
+    const t = setInterval(() => {
+      setTypedText(selectedAnswer.slice(0, i));
+      i++;
+      if (i > selectedAnswer.length) clearInterval(t);
+    }, 15);
+    return () => clearInterval(t);
+  }, [selectedAnswer, openDialog]);
 
-  const disableSubmit = loading || isRecording;
-
+  // === UI ===
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-green-50 via-white to-white px-4 py-8">
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-        <header className="flex flex-col gap-4 rounded-3xl bg-white p-6 shadow-lg ring-1 ring-green-100 md:flex-row md:items-center md:justify-between">
+      <div className="mx-auto w-full max-w-4xl flex flex-col gap-6">
+        {/* Header */}
+        <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 rounded-3xl bg-white p-6 shadow-lg ring-1 ring-green-100">
           <div className="space-y-1">
-            <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-green-500">
+            <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase text-green-500">
               <MessageCircle className="h-4 w-4" />
               Virtual Assistant BPJS
             </p>
-            <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">
+            <h1 className="text-2xl font-bold text-slate-900">
               Pusat Informasi BPJS Kesehatan
             </h1>
           </div>
           <Link
             href="/"
-            className="inline-flex items-center justify-center gap-2 self-start rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-200 md:self-auto"
+            className="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 rounded-full px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm"
           >
-            <ArrowLeft className="h-4 w-4" />
-            Kembali
+            <ArrowLeft className="h-4 w-4" /> Kembali
           </Link>
         </header>
 
+        {/* Chat Section */}
         <section className="rounded-3xl bg-white p-6 shadow-lg ring-1 ring-green-100">
           <div className="space-y-6">
-            {userQuestion ? (
-              <div className="flex flex-col gap-3">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                  Pertanyaan Anda
-                </span>
-                <div className="flex items-start justify-end gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-green-100 text-green-700">
-                    <CircleUser className="h-5 w-5" />
-                  </div>
-                  <div className="max-w-[75%] rounded-2xl rounded-br-none bg-green-600 px-4 py-3 text-sm font-medium text-white shadow-lg">
-                    <p>{userQuestion}</p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-6 py-8 text-center text-slate-600">
-                <MessageSquareQuote className="h-12 w-12 text-green-400" />
-                <div className="space-y-2">
+            {/* === Mulai Percakapan Box === */}
+            {!userQuestion && (
+              <div className="flex flex-col gap-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-6 py-8 text-slate-600">
+                <div className="flex flex-col items-center text-center">
+                  <MessageSquareQuote className="h-12 w-12 text-green-400" />
                   <p className="text-lg font-semibold text-slate-900">
-                    Mulai percakapan
+                    Mulai Percakapan
                   </p>
                 </div>
+
+                {/* === Category Buttons === */}
+                <div className="mt-4 space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    {categories.map((cat) => (
+                      <button
+                        key={cat.key}
+                        onClick={() => {
+                          const combinedAnswers = cat.question
+                            .map(
+                              (qa) =>
+                                `<p class='font-semibold text-green-700 mb-1'>${qa.q}</p><p class='mb-3'>${formatAnswerText(
+                                  qa.a
+                                )}</p>`
+                            )
+                            .join("<hr class='my-2' />");
+                          setSelectedQuestion(cat.title);
+                          setSelectedAnswer(combinedAnswers);
+                          setOpenDialog(true);
+                        }}
+                        className="flex items-center justify-center text-center rounded-2xl px-4 py-3 text-xs font-semibold bg-green-100 text-green-700 hover:bg-green-200 shadow-sm"
+                      >
+                        {cat.title}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
 
+            {/* === User Question + Answer === */}
             {userQuestion && (
-              <div aria-live="polite" className="flex flex-col gap-3">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                  Jawaban Virtual Assistant
-                </span>
-
+              <>
+                <div className="flex justify-end gap-3">
+                  <div className="max-w-[75%] bg-green-600 text-white rounded-2xl px-4 py-3 text-sm shadow">
+                    {userQuestion}
+                  </div>
+                </div>
                 {loading ? (
-                  <div className="flex gap-3">
-                    <Image
-                      src="/avatar/va.png"
-                      alt="Virtual Assistant"
-                      width={44}
-                      height={44}
-                      className="h-11 w-11 rounded-full border border-green-100 bg-green-50 object-cover"
-                    />
-                    <div className="space-y-3">
-                      <div className="h-4 w-24 animate-pulse rounded-full bg-slate-200" />
-                      <div className="h-24 max-w-md animate-pulse rounded-2xl bg-slate-200" />
-                    </div>
-                  </div>
-                ) : error ? (
-                  <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-rose-200 bg-rose-50/70 px-4 py-3 text-sm text-rose-700">
-                    <p>{error}</p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setError(null);
-                        setAnswer("");
-                        setTypedAnswer("");
-                      }}
-                      className="inline-flex items-center gap-2 self-start rounded-full bg-rose-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-rose-700"
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                      Coba ulang
-                    </button>
-                  </div>
-                ) : thinking ? (
-                  <div className="flex items-end gap-3">
-                    <Image
-                      src="/avatar/va.png"
-                      alt="Virtual Assistant"
-                      width={44}
-                      height={44}
-                      className="h-11 w-11 rounded-full border border-green-100 bg-green-50 object-cover"
-                    />
-                    <div className="flex items-center gap-2 rounded-2xl bg-white px-4 py-2 shadow ring-1 ring-green-100">
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-green-400" />
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-green-400 delay-150" />
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-green-400 delay-300" />
-                    </div>
-                  </div>
-                ) : answer ? (
-                  <div className="flex gap-3">
-                    <Image
-                      src="/avatar/va.png"
-                      alt="Virtual Assistant"
-                      width={44}
-                      height={44}
-                      className="h-11 w-11 rounded-full border border-green-100 bg-green-50 object-cover"
-                    />
-                    <div className="max-w-[80%] rounded-2xl rounded-bl-none bg-white px-4 py-3 text-sm leading-relaxed text-slate-700 shadow-lg ring-1 ring-green-100 typing-cursor">
-                      <p>{typedAnswer}</p>
-                    </div>
+                  <div className="flex gap-3 items-center">
+                    <Loader2 className="h-5 w-5 animate-spin text-green-600" />
+                    <span className="text-sm text-slate-500">Mencari jawaban...</span>
                   </div>
                 ) : (
-                  <div className="flex flex-col gap-2 rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-4 text-sm text-slate-600">
-                    <p>Belum ada jawaban yang bisa ditampilkan.</p>
-                    <span className="text-xs text-slate-400">
-                      Silakan ajukan pertanyaan lain.
-                    </span>
+                  <div className="flex gap-3">
+                    <Image
+                      src="/avatar/va.png"
+                      alt="VA"
+                      width={44}
+                      height={44}
+                      className="h-11 w-11 rounded-full bg-green-50 border border-green-100"
+                    />
+                    <div className="max-w-[80%] bg-white rounded-2xl px-4 py-3 shadow ring-1 ring-green-100 text-sm text-slate-700">
+                      {typedAnswer}
+                    </div>
                   </div>
                 )}
-
-                {!loading && !error && answer && (
-                  <div className="rounded-2xl border border-dashed border-green-200 bg-green-50/70 px-4 py-3 text-xs text-slate-500">
-                    {matchedQuestion && (
-                      <p>
-                        Referensi terdekat:{" "}
-                        <span className="font-semibold text-slate-700">
-                          {matchedQuestion}
-                        </span>
-                      </p>
-                    )}
-                    {typeof confidence === "number" && (
-                      <p>
-                        Tingkat keyakinan sistem:{" "}
-                        <span className="font-semibold text-slate-700">
-                          {(confidence * 100).toFixed(0)}%
-                        </span>
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
+              </>
             )}
 
+            {/* === Input Box === */}
             <form
               onSubmit={handleSubmit}
-              className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50/50 p-4"
+              className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4"
             >
-              <label
-                htmlFor="user-question"
-                className="text-xs font-semibold uppercase tracking-wide text-slate-500"
-              >
-                Ketik atau gunakan suara
-              </label>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <input
-                  id="user-question"
-                  type="text"
-                  value={inputValue}
-                  onChange={(event) => {
-                    setInputValue(event.target.value);
-                    if (error) setError(null);
-                  }}
-                  placeholder="Contoh: Bagaimana cara melakukan pendaftaran baru?"
-                  className="w-full flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm focus:border-green-400 focus:outline-none focus:ring-2 focus:ring-green-100 disabled:opacity-60"
-                  disabled={disableSubmit}
-                />
+              <h1 className="font-semibold text-xl">Informasi Lainnya Tentang Program JKN BPJS Kesehatan</h1>
+             <input
+  value={inputValue}
+  onChange={(e) => setInputValue(e.target.value)}
+  placeholder="Contoh: Bagaimana cara pendaftaran baru?"
+  className="w-full rounded-xl border-2 border-green-500 px-4 py-3 text-sm font-semibold text-slate-700 focus:border-green-400 focus:ring-2 focus:ring-green-400"
+/>
+
+              <div className="flex gap-2 justify-end">
                 <button
                   type="button"
                   onClick={isRecording ? stopRecording : startRecording}
-                  disabled={
-                    !isRecording &&
-                    (!supportsSpeechRecognition || disableSubmit)
-                  }
-                  className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold shadow-sm transition ${
+                  className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold shadow-sm ${
                     isRecording
                       ? "bg-rose-600 text-white hover:bg-rose-700"
-                      : "bg-slate-900 text-white hover:bg-slate-800 disabled:bg-slate-300 disabled:text-slate-500"
+                      : "bg-slate-900 text-white hover:bg-slate-800"
                   }`}
                 >
                   {isRecording ? (
                     <>
-                      <Square className="h-4 w-4" />
-                      Berhenti
+                      <Square className="h-4 w-4" /> Stop
                     </>
                   ) : (
                     <>
-                      <Mic className="h-4 w-4" />
-                      Gunakan suara
+                      <Mic className="h-4 w-4" /> Gunakan Suara
+                    </>
+                  )}
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading || !inputValue.trim()}
+                  className="flex items-center gap-2 rounded-full bg-green-600 text-white px-5 py-2 text-sm font-semibold shadow-sm hover:bg-green-700"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" /> Tunggu...
+                    </>
+                  ) : (
+                    <>
+                      <MessageCircle className="h-4 w-4" /> Tanyakan
                     </>
                   )}
                 </button>
               </div>
-
-              {isRecording && (
-                <p className="text-xs font-semibold text-rose-600">
-                  Merekam... tekan berhenti setelah selesai berbicara.
-                </p>
-              )}
-              {!supportsSpeechRecognition && (
-                <p className="text-xs text-slate-500">
-                  Browser Anda belum mendukung Web Speech API. Coba gunakan Chrome
-                  atau Edge versi terbaru di desktop.
-                </p>
-              )}
-              {recordingError && (
-                <p className="text-xs text-rose-600">{recordingError}</p>
-              )}
-
-              <button
-                type="submit"
-                disabled={disableSubmit || inputValue.trim().length === 0}
-                className="inline-flex items-center justify-center gap-2 self-end rounded-full bg-green-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-green-300"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Mencari jawaban...
-                  </>
-                ) : (
-                  <>
-                    <MessageCircle className="h-4 w-4" />
-                    Tanyakan
-                  </>
-                )}
-              </button>
+              {recordingError && <p className="text-xs text-rose-600">{recordingError}</p>}
             </form>
           </div>
         </section>
       </div>
+
+      {/* === Modal Popup === */}
+      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+        <DialogContent className="w-full max-w-3xl rounded-2xl [&>button:last-child]:hidden">
+          <DialogHeader>
+            <DialogTitle className="text-green-700 text-lg font-semibold">
+              {selectedQuestion || "Jawaban Virtual Assistant"}
+            </DialogTitle>
+            <DialogClose asChild>
+              <button
+                className="absolute right-4 top-4 text-red-500 hover:text-red-600"
+                aria-label="Tutup dialog"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </DialogClose>
+          </DialogHeader>
+
+          <div
+            className="mt-4 text-sm text-slate-700 leading-relaxed whitespace-pre-line"
+            dangerouslySetInnerHTML={{
+              __html: typedText || "Menampilkan jawaban...",
+            }}
+          ></div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
