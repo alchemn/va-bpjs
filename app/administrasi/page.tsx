@@ -49,17 +49,25 @@ const replacements = [
   }
 ];
 
-const formatAnswerText = (items: string[]) =>
+const replacePattern = new RegExp(
+  replacements.map(r => r.find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'),
+  'gi'
+);
+
+const replaceMap = new Map(
+  replacements.map(r => [r.find.toLowerCase(), r.html])
+);
+
+// ✅ Fungsi jadi super cepat
+const formatAnswerText = (items: string[]) => 
   items
-    .map((item) => {
+    .map(item => {
       if (!item) return "";
-      replacements.forEach(({ find, html }) => {
-        if (item.includes(find)) item = item.replace(find, html);
-      });
-      return item;
+      return item.replace(replacePattern, match => 
+        replaceMap.get(match.toLowerCase()) || match
+      );
     })
     .join("<br />");
-
 
 export default function AdministrasiChatPage() {
   const [categories, setCategories] = useState<

@@ -91,33 +91,70 @@ export default function PengaduanChatPage() {
       }, 30);
     };
 
-    const playAndType = async () => {
-      try {
-        if('speechSynthesis' in window){
-          const utter = new SpeechSynthesisUtterance(answer)
-          utter.lang ="id-ID";
-          utter.rate = 0.9;
-          utter.pitch= 1.1;
-          utter.volume= 1;
-          
-          setTimeout(() => {
-            window.speechSynthesis.speak(utter)
-          },300)
+const playAndType = async () => {
+  try {
+    if ("speechSynthesis" in window) {
+      const synth = window.speechSynthesis;
+      const voices = synth.getVoices();
 
+      // cari voice Indo, kalau gak ada fallback ke English
+      const indoVoice =
+        voices.find((v) => v.lang.startsWith("id")) ||
+        voices.find((v) => v.lang.startsWith("en")) ||
+        null;
 
-          setTimeout(() => {
-            if(!isCancelled) {
-              startTyping()
-            }
-          },1200)
+      const sentences = answer.split(/([.!?])\s+/); // bagi jadi potongan kalimat
+      let idx = 0;
+
+      synth.cancel(); // biar gak dobel
+
+      // fungsi rekursif: bacain per kalimat dengan jeda
+      const speakNext = () => {
+        if (idx >= sentences.length) return;
+        const part = sentences[idx];
+        if (!part.trim()) {
+          idx++;
+          return speakNext();
         }
-      } catch (error) {
-        console.error("Speech Error", error)
-        if(!isCancelled){
-          startTyping()
-        }
+
+        const utter = new SpeechSynthesisUtterance(part);
+        utter.lang = indoVoice?.lang || "id-ID";
+        utter.voice = indoVoice;
+        utter.rate = 0.9;
+        utter.pitch = 1.05;
+        utter.volume = 1;
+
+        utter.onend = () => {
+          idx++;
+          // jeda antar kalimat
+          setTimeout(speakNext, 600 + Math.random() * 300);
+        };
+
+        synth.speak(utter);
+      };
+
+      // nunggu voice siap (kalau belum di-load browser)
+      if (voices.length === 0) {
+        await new Promise((resolve) => {
+          window.speechSynthesis.onvoiceschanged = resolve;
+        });
       }
+
+      setTimeout(() => speakNext(), 400);
+
+      // mulai efek typing setelah sedikit delay
+      setTimeout(() => {
+        if (!isCancelled) startTyping();
+      }, 1200);
+    } else {
+      console.warn("Speech synthesis tidak tersedia di browser ini");
+      startTyping();
     }
+  } catch (error) {
+    console.error("Speech Error", error);
+    if (!isCancelled) startTyping();
+  }
+};
 
     playAndType();
 
