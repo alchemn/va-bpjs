@@ -76,6 +76,10 @@ const replacements = [
     html: `<a href="tel:165" target="_blank" class="inline-flex items-center gap-1 text-green-600 underline font-semibold">
             <img src="/image/phon.png" alt="Phone" class="w-4 h-4" /> Telepon
           </a>`
+  },
+  {
+    find: "Voice Interactive",
+    html: `<span class="italic">Voice Interactive</span>`
   }
 ];
 
@@ -420,29 +424,45 @@ export default function InformasiPage() {
 
       {/* === Modal Popup === */}
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent className="w-full max-w-3xl rounded-2xl [&>button:last-child]:hidden">
-          <DialogHeader>
-            <DialogTitle className="text-green-700 text-lg font-semibold">
-              {selectedQuestion || "Jawaban Virtual Assistant"}
-            </DialogTitle>
-            <DialogClose asChild>
-              <button
-                className="absolute right-4 top-4 text-red-500 hover:text-red-600"
-                aria-label="Tutup dialog"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </DialogClose>
-          </DialogHeader>
+  <DialogContent className="w-full max-w-md md:max-w-3xl lg:max-w-5xl rounded-2xl [&>button:last-child]:hidden">
+    <DialogHeader>
+      <DialogTitle className="text-green-700 text-lg font-semibold">
+        {selectedQuestion || "Jawaban Virtual Assistant"}
+      </DialogTitle>
 
+      <DialogClose asChild>
+        <button
+          className="absolute right-4 top-4 text-red-500 hover:text-red-600 transition-transform duration-200 hover:scale-110"
+          aria-label="Tutup dialog"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </DialogClose>
+    </DialogHeader>
+
+    <div className="mt-4 text-sm leading-relaxed">
+      <div className="flex gap-3 items-start">
+        <Image
+          src="/avatar/va.png"
+          alt="Virtual Assistant"
+          width={44}
+          height={44}
+          className="h-11 w-11 rounded-full border border-green-100 bg-green-50 object-cover flex-shrink-0"
+        />
+
+        <div className="w-full md:max-w-[92%] rounded-2xl rounded-bl-none bg-white px-5 py-4 text-slate-700 shadow-lg ring-1 ring-green-100">
           <div
-            className="mt-4 text-sm text-slate-700 leading-relaxed whitespace-pre-line"
+            className="whitespace-pre-line"
             dangerouslySetInnerHTML={{
               __html: typedText || "Menampilkan jawaban...",
             }}
           ></div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
+    </div>
+  </DialogContent>
+</Dialog>
+
     </div>
   );
 }
