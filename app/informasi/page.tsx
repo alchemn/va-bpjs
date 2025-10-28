@@ -423,7 +423,7 @@ export default function InformasiPage() {
       </div>
 
       {/* === Modal Popup === */}
-      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+  <Dialog open={openDialog} onOpenChange={setOpenDialog}>
   <DialogContent className="w-full max-w-md md:max-w-3xl lg:max-w-5xl rounded-2xl [&>button:last-child]:hidden">
     <DialogHeader>
       <DialogTitle className="text-green-700 text-lg font-semibold">
@@ -453,6 +453,7 @@ export default function InformasiPage() {
         <div className="w-full md:max-w-[92%] rounded-2xl rounded-bl-none bg-white px-5 py-4 text-slate-700 shadow-lg ring-1 ring-green-100">
           <div
             className="whitespace-pre-line"
+            style={{ textAlign: "justify", textJustify: "inter-word" }}
             dangerouslySetInnerHTML={{
               __html: typedText || "Menampilkan jawaban...",
             }}
@@ -462,7 +463,6 @@ export default function InformasiPage() {
     </div>
   </DialogContent>
 </Dialog>
-
     </div>
   );
 }
