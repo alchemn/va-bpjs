@@ -167,7 +167,7 @@ export default function FaceWatcher() {
           touchAction: "none",
         }}
       >
-        <div className="relative w-40 h-40 sm:w-52 sm:h-52 md:w-60 md:h-60">
+        <div className="relative w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44">
           <AnimatePresence mode="wait">
             {showAvatar ? (
               <motion.video
