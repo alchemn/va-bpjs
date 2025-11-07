@@ -3,7 +3,7 @@ import { Stemmer, Tokenizer } from "sastrawijs";
 import fs from "fs/promises";
 import path from "path";
 
-// Preprocessing setup (still needed for user input)
+// === Preprocessing setup ===
 const customWords = ["online"];
 const stemmer = new Stemmer(customWords);
 const tokenizer = new Tokenizer();
@@ -11,7 +11,7 @@ const tokenizer = new Tokenizer();
 let embedder: FeatureExtractionPipeline | null = null;
 let embeddingsCache: Record<string, { q: string; a: string; vector: number[] }[]> | null = null;
 
-// Function to load the embedding model (only for user input now)
+// === Load embedding model (for user input only) ===
 async function getEmbedder(): Promise<FeatureExtractionPipeline> {
   if (!embedder) {
     console.log("⏳ Loading MiniLM model for input processing...");
@@ -21,11 +21,9 @@ async function getEmbedder(): Promise<FeatureExtractionPipeline> {
   return embedder;
 }
 
-// Function to load the pre-computed embeddings from the filesystem
+// === Load pre-computed embeddings ===
 async function loadPrecomputedEmbeddings() {
-  if (embeddingsCache) {
-    return embeddingsCache;
-  }
+  if (embeddingsCache) return embeddingsCache;
 
   console.log("⏳ Loading pre-computed embeddings from filesystem...");
   const filePath = path.join(process.cwd(), "public", "embeddings.json");
@@ -37,13 +35,11 @@ async function loadPrecomputedEmbeddings() {
     return embeddingsCache;
   } catch (error) {
     console.error("Error reading or parsing embeddings.json:", error);
-    // If the file doesn't exist or is invalid, we can't proceed.
     throw new Error("Failed to load or parse embeddings file from filesystem.");
   }
 }
 
-
-// Helper functions (no changes needed here)
+// === Helper functions ===
 function normalizeVector(v: Tensor): number[] {
   if (!v) return [];
   if (Array.isArray(v)) {
@@ -52,7 +48,7 @@ function normalizeVector(v: Tensor): number[] {
   }
   if (v.data) return Array.from(v.data);
   if (typeof v.tolist === "function") return v.tolist().flat();
-  console.warn("Warning: normalizeVector received an unexpected object:", v);
+  console.warn("Warning: normalizeVector received unexpected object:", v);
   return [];
 }
 
@@ -72,15 +68,30 @@ function preprocessText(input: string): string {
   return stemmed.join(" ");
 }
 
-// The main function to find a match
+// === MAIN FUNCTION ===
 export async function findLocalMatch(input: string) {
-  // 1. Get the model and the pre-computed embeddings in parallel
+  //  0. Pre-filter untuk input non-layanan
+  const nonServiceWords = [
+    "berak", "pup", "toilet", "kencing",
+    "makan", "tidur", "mandi", "boker", "pipis"
+  ];
+  const lowered = input.toLowerCase();
+
+  if (nonServiceWords.some(w => lowered.includes(w))) {
+    return {
+      q: input,
+      a: "Wkwk... sepertinya itu urusan pribadi, bukan urusan BPJS 😄",
+      score: 1.0
+    };
+  }
+
+  // 🤝 1. Load model dan embeddings
   const [model, embeddingsByCat] = await Promise.all([
     getEmbedder(),
     loadPrecomputedEmbeddings(),
   ]);
 
-  // 2. Preprocess and embed the user's input question
+  //  2. Preprocess & embed input user
   const text = preprocessText(input);
   console.log(`Stemmed query: "${text}"`);
   const inputEmbed = await model(text, { pooling: "mean", normalize: true });
@@ -88,13 +99,10 @@ export async function findLocalMatch(input: string) {
 
   let best = { q: "", a: "", score: -1 };
 
-  // 3. Compare the input vector with the pre-computed vectors
+  //  3. Cari kesamaan tertinggi di embeddings.json
   for (const category in embeddingsByCat) {
     const db = embeddingsByCat[category] ?? [];
-    if (db.length === 0) {
-      console.warn("⚠️ No questions found for category:", category);
-      continue;
-    }
+    if (db.length === 0) continue;
 
     for (const item of db) {
       const score = cosineSimilarity(inputVec, item.vector);
@@ -104,14 +112,16 @@ export async function findLocalMatch(input: string) {
     }
   }
 
-  // 4. Return the best match (or a default response)
-  if (best.score < 0.3) {
+  //  4. Ambang batas
+  const THRESHOLD = 0.6;
+  if (best.score < THRESHOLD) {
     return {
-      q: best.q, // Return the closest match even if below threshold
-      a: "Maaf, saya belum punya informasi soal itu.",
+      q: best.q,
+      a: "Maaf, saya belum paham maksudnya 😅 Bisa dijelaskan lebih spesifik ya?",
       score: best.score,
     };
   }
 
+  // 5. Return hasil terbaik
   return best;
 }
