@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum FeatureType {
+  INFORMASI
+  PENGADUAN
+  ADMINISTRASI
+}
+
+enum UserRole {
+  ADMIN
+  SATKER
+}
+
+model User {
+  id            Int          @id @default(autoincrement())
+  username      String       @unique
+  password      String
+  role          UserRole     @default(SATKER)
+  satuanKerja   SatuanKerja? @relation("UserSatuanKerja", fields: [satuanKerjaId], references: [id])
+  satuanKerjaId Int?         @unique // satu user hanya untuk satu satker
+  createdAt     DateTime     @default(now())
+}
+
+model SatuanKerja {
+  id             Int           @id @default(autoincrement())
+  name           String
+  kabupatenKota  String
+  user           User?         @relation("UserSatuanKerja")
+  logs           FeatureLog[]
+  createdAt      DateTime      @default(now())
+}
+
+model Feature {
+  id          Int          @id @default(autoincrement())
+  name        String
+  type        FeatureType
+  subFeatures SubFeature[]
+}
+
+model SubFeature {
+  id             Int           @id @default(autoincrement())
+  name           String
+  feature        Feature       @relation(fields: [featureId], references: [id])
+  featureId      Int
+  subSubFeatures SubSubFeature[]
+}
+
+model SubSubFeature {
+  id             Int           @id @default(autoincrement())
+  name           String
+  subFeature     SubFeature    @relation(fields: [subFeatureId], references: [id])
+  subFeatureId   Int
+  logs           FeatureLog[]
+}
+
+model FeatureLog {
+  id              Int           @id @default(autoincrement())
+  satuanKerja     SatuanKerja   @relation(fields: [satuanKerjaId], references: [id])
+  satuanKerjaId   Int
+  subSubFeature   SubSubFeature @relation(fields: [subSubFeatureId], references: [id])
+  subSubFeatureId Int
+  count           Int           @default(1)
+  createdAt       DateTime      @default(now())
+
+  @@unique([satuanKerjaId, subSubFeatureId])
+}

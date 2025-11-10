@@ -47,3 +47,5 @@ public/live2d/*.js
 # Allow Live2D model files but ignore core library
 public/live2d/*
 !public/live2d/hiyori/
+
+/lib/generated/prisma

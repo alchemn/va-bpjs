@@ -1,0 +1,61 @@
+┌──────────────────────┐
+│       User           │
+├──────────────────────┤
+│ id (PK)              │
+│ username             │
+│ password             │
+│ role (ADMIN/SATKER)  │
+│ satuanKerjaId (FK)   │─┐ 1─1
+│ createdAt            │ │
+└──────────────────────┘ │
+                         │
+                         │
+┌──────────────────────┐ │
+│   SatuanKerja        │◄┘
+├──────────────────────┤
+│ id (PK)              │
+│ name                 │
+│ kabupatenKota        │
+│ createdAt            │
+└──────────────────────┘
+           │ 1─∞
+           │
+           ▼
+┌──────────────────────┐
+│     FeatureLog       │
+├──────────────────────┤
+│ id (PK)              │
+│ satuanKerjaId (FK)   │
+│ subSubFeatureId (FK) │
+│ count                │
+│ createdAt            │
+└──────────────────────┘
+           ▲
+           │ ∞─1
+┌──────────────────────┐
+│   SubSubFeature      │
+├──────────────────────┤
+│ id (PK)              │
+│ name                 │
+│ subFeatureId (FK)    │
+└──────────────────────┘
+           ▲
+           │ ∞─1
+┌──────────────────────┐
+│    SubFeature        │
+├──────────────────────┤
+│ id (PK)              │
+│ name                 │
+│ featureId (FK)       │
+└──────────────────────┘
+           ▲
+           │ ∞─1
+┌──────────────────────┐
+│      Feature         │
+├──────────────────────┤
+│ id (PK)              │
+│ name                 │
+│ type (INFORMASI/     │
+│       PENGADUAN/     │
+│       ADMINISTRASI)  │
+└──────────────────────┘
