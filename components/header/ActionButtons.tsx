@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { PhoneCall, Phone, MessageCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { PhoneCall, Phone, MessageCircle, LogOut } from "lucide-react";
 import { Button } from "../ui/button";
 import Image from "next/image";
 
@@ -11,6 +12,23 @@ export default function ActionButtons() {
   const [openSocial, setOpenSocial] = useState(false);
   const callRef = useRef<HTMLDivElement>(null);
   const socialRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+
+  // Fungsi Logout
+  const handleLogout = () => {
+    // Hapus localStorage
+    localStorage.removeItem('token')
+    localStorage.removeItem('role')
+    localStorage.removeItem('satuanKerja')
+
+    // Hapus cookie (biar middleware tahu)
+    document.cookie = 'token=; path=/; max-age=0'
+    document.cookie = 'role=; path=/; max-age=0'
+
+    // Arahkan ke halaman login
+    router.push('/login')
+  }
+
 
   // Tutup dropdown Social saat klik di luar
   useEffect(() => {
@@ -29,10 +47,7 @@ export default function ActionButtons() {
   // Tutup dropdown Call saat klik di luar
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (
-        callRef.current &&
-        !callRef.current.contains(event.target as Node)
-      ) {
+      if (callRef.current && !callRef.current.contains(event.target as Node)) {
         setOpenCall(false);
       }
     }
@@ -131,7 +146,7 @@ export default function ActionButtons() {
                 className="group flex flex-col items-center gap-1 hover:scale-105 transition"
               >
                 <Image
-                  alt="YouTube"
+                  alt="Website"
                   src="/image/web.png"
                   width={24}
                   height={24}
@@ -173,6 +188,15 @@ export default function ActionButtons() {
           </div>
         )}
       </div>
+
+      {/* Logout Button */}
+      <Button
+        onClick={handleLogout}
+        className="rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 hover:cursor-pointer transition hover:transition-shadow"
+      >
+        <LogOut className="h-4 w-4 md:mr-2" />
+        <span className="hidden md:inline">Logout</span>
+      </Button>
     </div>
   );
 }

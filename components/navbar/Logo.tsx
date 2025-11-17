@@ -9,8 +9,8 @@ const jetBrains_Mono = JetBrains_Mono({
 export default function Logo() {
   return (
     <div className="flex flex-row items-center">
-      <Image src="/logo.png" alt="logo" width={80} height={10} />
-      <h1 className={`${jetBrains_Mono.className} text-2xl font-bold text-black`}>Virtual Assistant <span className="font-bold text-green-700">BPJS</span></h1>
+      <Image src="/image/logo.png" alt="logo" width={50} height={50} />
+      <div className="leading-tight"><p className="text-sm font-semibold uppercase tracking-wide text-sky-600">Virtual Assistant</p><p class="text-base font-semibold text-green-700">BPJS Kesehatan</p></div>
     </div>
   );
 }

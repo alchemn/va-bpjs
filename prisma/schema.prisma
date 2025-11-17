@@ -68,6 +68,4 @@ model FeatureLog {
   subSubFeatureId Int
   count           Int           @default(1)
   createdAt       DateTime      @default(now())
-
-  @@unique([satuanKerjaId, subSubFeatureId])
 }

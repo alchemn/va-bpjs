@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams, useParams, useRouter } from 'next/navigation'
 import axios from 'axios'
+import Breadcrumb from '@/components/Breadcrumb'
 
 interface SubSubFeatureLog {
   id: number
@@ -40,7 +41,7 @@ export default function SubfeaturePage() {
         const res = await axios.get(`/api/admin/logs/${satuanKerjaId}/${featureType}`, {
           params: { month, year },
         })
-        setData(res.data[0]) // karena response-nya array [ {...} ]
+        setData(res.data[0]) // response-nya array [ {...} ]
       } catch (err) {
         console.error('Error fetching data:', err)
       } finally {
@@ -50,8 +51,19 @@ export default function SubfeaturePage() {
     if (satuanKerjaId && featureType) fetchData()
   }, [satuanKerjaId, featureType, month, year])
 
-  if (loading) return <p className="p-4 text-center">Loading...</p>
-  if (!data) return <p className="p-4 text-center">Tidak ada data.</p>
+  if (loading)
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-b from-blue-50 to-green-50">
+        <p className="text-gray-700 text-base font-medium">Loading data...</p>
+      </div>
+    )
+
+  if (!data)
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-b from-blue-50 to-green-50">
+        <p className="text-gray-600 text-base font-medium">Tidak ada data ditemukan.</p>
+      </div>
+    )
 
   // Format data per subfeature
   const formattedData = data.subFeatures.map((sub) => {
@@ -79,41 +91,73 @@ export default function SubfeaturePage() {
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-xl font-semibold mb-4">
-        Detail Akses Fitur: {data.name} ({featureType})
-      </h1>
-      <div className="overflow-x-auto bg-white shadow-md rounded-lg">
-        <table className="min-w-full border border-gray-200">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="px-4 py-2 text-left">Sub Fitur</th>
-              <th className="px-4 py-2 text-left">Jumlah Akses</th>
-              <th className="px-4 py-2 text-left">Terakhir Diakses</th>
-            </tr>
-          </thead>
-          <tbody>
-            {formattedData.length === 0 ? (
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50 p-6 flex flex-col items-center">
+
+      {/* 🔹 Breadcrumb */}
+      <div className="w-full max-w-5xl text-left">
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', href: '/admin/dashboard' },
+            { label: `${featureType}`, href: `/admin/dashboard/${satuanKerjaId}/${featureType}` },
+          ]}
+        />
+      </div>
+
+      {/* 🔹 Container utama */}
+      <div className="w-full max-w-5xl bg-white shadow-lg rounded-2xl p-6 border border-gray-100">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-xl md:text-2xl font-bold text-green-700">
+            FITUR <span className="text-gray-800">{featureType}</span>
+          </h1>
+          <button
+            onClick={() => router.back()}
+            className="bg-green-600 hover:bg-green-700 text-white rounded-full px-5 py-2"
+          >
+            ← Kembali
+          </button>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full border border-gray-200 rounded-lg overflow-hidden text-sm text-gray-800">
+            <thead className="bg-green-100 text-gray-700">
               <tr>
-                <td colSpan={3} className="text-center py-4 text-gray-500">
-                  Tidak ada aktivitas pada bulan ini.
-                </td>
+                <th className="px-4 py-3 text-left font-semibold">SubFitur</th>
+                <th className="px-4 py-3 text-left font-semibold">Jumlah Akses</th>
+                <th className="px-4 py-3 text-left font-semibold">Terakhir Diakses</th>
               </tr>
-            ) : (
-              formattedData.map((item) => (
-                <tr
-                  key={item.id}
-                  className="border-t hover:bg-gray-50 cursor-pointer transition"
-                  onClick={() => handleRowClick(item.id)}
-                >
-                  <td className="px-4 py-2">{item.name}</td>
-                  <td className="px-4 py-2">{item.totalAccess}</td>
-                  <td className="px-4 py-2">{item.lastAccess}</td>
+            </thead>
+            <tbody>
+              {formattedData.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={3}
+                    className="text-center py-6 text-gray-500 bg-gray-50 border-t"
+                  >
+                    Tidak ada aktivitas pada bulan ini.
+                  </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                formattedData.map((item, index) => (
+                  <tr
+                    key={item.id}
+                    className={`border-t cursor-pointer transition ${
+                      index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                    } hover:bg-green-50`}
+                    onClick={() => handleRowClick(item.id)}
+                  >
+                    <td className="px-4 py-3 font-medium">
+                      {item.name}
+                    </td>
+                    <td className="px-4 py-3 hover:underline text-blue-700">
+                      {item.totalAccess}
+                    </td>
+                    <td className="px-4 py-3">{item.lastAccess}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
