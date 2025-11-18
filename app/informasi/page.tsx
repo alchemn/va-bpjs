@@ -135,6 +135,35 @@ export default function InformasiPage() {
     fetchData();
   }, []);
 
+  const logFeatureAccess = async (featureName: string) => {
+    try {
+      // Ambil token dari localStorage
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      // Fetch subSubFeature dulu untuk cari ID-nya
+      const res = await fetch("/api/subsubfeature/by-name?name=" + encodeURIComponent(featureName));
+      const data = await res.json();
+
+      if (!data?.id) {
+        console.warn("subSubFeature tidak ditemukan untuk:", featureName);
+        return;
+      }
+
+      await fetch("/api/feature-access", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ subSubFeatureId: data.id }),
+      });
+    } catch (err) {
+      console.error("Gagal mencatat feature log:", err);
+    }
+  };
+
+
   const submitQuestion = async (rawQuestion: string) => {
     const trimmed = rawQuestion.trim();
     if (!trimmed) return;
@@ -314,7 +343,11 @@ export default function InformasiPage() {
                     {categories.map((cat) => (
                       <button
                         key={cat.key}
-                        onClick={() => {
+                        onClick={async () => {
+                          // 1️⃣ Panggil API pencatat log
+                          await logFeatureAccess(cat.title);
+
+                          // 2️⃣ Lanjutkan proses dialog seperti biasa
                           const combinedAnswers = cat.question
                             .map(
                               (qa) =>
@@ -323,6 +356,7 @@ export default function InformasiPage() {
                                 )}</p>`
                             )
                             .join("<hr class='my-2' />");
+
                           setSelectedQuestion(cat.title);
                           setSelectedAnswer(combinedAnswers);
                           setOpenDialog(true);
@@ -331,6 +365,7 @@ export default function InformasiPage() {
                       >
                         {cat.title}
                       </button>
+
                     ))}
                   </div>
                 </div>
@@ -373,12 +408,12 @@ export default function InformasiPage() {
               className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4"
             >
               <h1 className="font-semibold text-xl">Informasi Lainnya Tentang Program JKN BPJS Kesehatan</h1>
-             <input
-  value={inputValue}
-  onChange={(e) => setInputValue(e.target.value)}
-  placeholder="Contoh: Bagaimana cara pendaftaran baru?"
-  className="w-full rounded-xl border-2 border-green-500 px-4 py-3 text-sm font-semibold text-slate-700 focus:border-green-400 focus:ring-2 focus:ring-green-400"
-/>
+              <input
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="Contoh: Bagaimana cara pendaftaran baru?"
+                className="w-full rounded-xl border-2 border-green-500 px-4 py-3 text-sm font-semibold text-slate-700 focus:border-green-400 focus:ring-2 focus:ring-green-400"
+              />
 
               <div className="flex gap-2 justify-end">
                 <button

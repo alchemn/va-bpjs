@@ -54,9 +54,46 @@ const replacePattern = new RegExp(
   'gi'
 );
 
+async function getSubSubFeatureId(name:string) {
+  const res = await fetch("/api/subsubfeature/map?name=" + encodeURIComponent(name))
+  const data = await res.json();
+  return data.id;
+}
+
 const replaceMap = new Map(
   replacements.map(r => [r.find.toLowerCase(), r.html])
 );
+
+const handleSelectCategory = async (selectedQuestion: string) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    // 1. Ambil subSubFeature berdasarkan nama pertanyaan ("q")
+    const res = await fetch(`/api/subsubfeature/by-name?q=${encodeURIComponent(selectedQuestion)}`);
+    const data = await res.json();
+
+    if (!data?.id) {
+      console.warn("SubSubFeature tidak ditemukan:", selectedQuestion);
+      return;
+    }
+
+    // 2. Kirim log akses
+    await fetch("/api/feature-access", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        subSubFeatureId: data.id,
+      }),
+    });
+  } catch (err) {
+    console.error("Gagal mencatat log:", err);
+  }
+};
+
 
 // ✅ Fungsi jadi super cepat
 const formatAnswerText = (items: string[]) => 
@@ -100,6 +137,14 @@ export default function AdministrasiChatPage() {
     };
     fetchData();
   }, []);
+
+  function getToken() {
+    return document.cookie
+      .split("; ")
+      .find((c) => c.startsWith("token="))
+      ?.split("=")[1];
+  }
+
 
   useEffect(() => {
     if (!answer || !openDialog) return;
@@ -211,14 +256,47 @@ export default function AdministrasiChatPage() {
                                 {cat.question.map((qa) => (
                                   <button
                                     key={qa.q}
-                                    onClick={() => {
+                                    onClick={async () => {
                                       setQuestion(qa.q);
                                       setAnswer(formatAnswerText(qa.a));
                                       setOpenDialog(true);
+
+                                      try {
+                                        const token = getToken();
+                                        if (!token) return;
+
+                                        // ambil subSubFeature berdasarkan nama pertanyaan
+                                        const res = await fetch(
+                                          `/api/subsubfeature/by-name?name=${encodeURIComponent(qa.q)}`
+                                        );
+
+                                        const data = await res.json();
+
+                                        if (!data?.id) {
+                                          console.warn("SubSubFeature tidak ditemukan:", qa.q);
+                                          return;
+                                        }
+
+                                        // kirim log akses
+                                        await fetch("/api/feature-access", {
+                                          method: "POST",
+                                          headers: {
+                                            "Content-Type": "application/json",
+                                            Authorization: `Bearer ${token}`,
+                                          },
+                                          body: JSON.stringify({
+                                            subSubFeatureId: data.id,
+                                          }),
+                                        });
+                                      } catch (err) {
+                                        console.error("Failed to log feature access:", err);
+                                      }
                                     }}
-                                    className="w-full text-left rounded-xl px-4 py-3 text-sm mb-2 bg-white text-slate-700 hover:bg-slate-100 transition">
+                                    className="w-full text-left rounded-xl px-4 py-3 text-sm mb-2 bg-white text-slate-700 hover:bg-slate-100 transition"
+                                  >
                                     {qa.q}
                                   </button>
+
                                 ))}
                               </motion.div>
                             )}

@@ -30,6 +30,23 @@ const categories = [
   },
 ];
 
+const handleClick = async (featureName : string) =>{
+  if (featureName === "Pengaduan Peserta") {
+    await fetch("/api/feature-access", {
+      method:"POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${document.cookie
+          .split(": ")
+          .find((c) => c.startsWith("token="))
+          ?.split("=") [1]
+        }`
+      },
+      body: JSON.stringify({subSubFeatureId: 4})
+    })
+  }
+}
+
 export default function CategoriesSection() {
   return (
     <section id="categories" className="space-y-8">
@@ -43,6 +60,7 @@ export default function CategoriesSection() {
       <div className="grid gap-6 md:grid-cols-3">
         {categories.map(({ href, title, description, icon: Icon, accent }) => (
           <Link
+            onClick={() => handleClick(title)}
             key={href}
             href={href}
             className="group relative overflow-hidden rounded-3xl border border-slate-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-sky-200 hover:shadow-xl"

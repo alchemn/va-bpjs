@@ -83,7 +83,7 @@ export default function LoginPage() {
           Login Sistem BPJS
         </h1>
         <p className="text-gray-500 text-center mb-8 text-sm">
-          Silakan masuk untuk melanjutkan ke dashboard
+          Silakan masuk untuk melanjutkan layanan
         </p>
 
         {/* Form */}
